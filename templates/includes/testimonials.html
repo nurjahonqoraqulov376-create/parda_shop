@@ -1,0 +1,33 @@
+{% load site_extras %}
+{% if testimonials %}
+  <section class="section testimonials">
+    <div class="wrap">
+      <div class="section-head center">
+        <div>
+          <p class="eyebrow">{% t "brand.name" %}</p>
+          <h2>{% t "home.testimonials_title" %}</h2>
+          <p class="lead">{% t "home.testimonials_lead" %}</p>
+        </div>
+      </div>
+      <div class="tst-grid">
+        {% for item in testimonials %}
+          <figure class="tst-item">
+            <div class="tst-stars">{% for _ in item.stars %}★{% endfor %}</div>
+            <blockquote>{% tf item "text" %}</blockquote>
+            <figcaption class="tst-author">
+              {% if item.photo %}
+                <img src="{{ item.photo.url }}" alt="{{ item.author }}" loading="lazy" width="320" height="320">
+              {% else %}
+                <span class="tst-avatar">{{ item.author|slice:":1" }}</span>
+              {% endif %}
+              <span>
+                <b>{{ item.author }}</b>
+                {% tf item "role" as role %}{% if role %}<i>{{ role }}</i>{% endif %}
+              </span>
+            </figcaption>
+          </figure>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}

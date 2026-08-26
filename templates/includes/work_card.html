@@ -1,0 +1,19 @@
+{% load site_extras %}
+{# Portfolio kartasi — bosh sahifada ham, ishlarimiz sahifasida ham ishlatiladi. #}
+<article class="card">
+  <a class="card-photo" href="{{ work.get_absolute_url }}">
+    {% if work.image %}
+      <img src="{{ work.image.url }}" alt="{% tf work 'title' %}" loading="lazy" width="1000" height="750">
+    {% else %}
+      <span class="placeholder">✦</span>
+    {% endif %}
+  </a>
+  <div class="card-body">
+    {% tf work "category" as work_category %}
+    {% if work_category %}<p class="card-cat">{{ work_category }}</p>{% endif %}
+    <h3><a href="{{ work.get_absolute_url }}">{% tf work "title" %}</a></h3>
+    {% tf work "excerpt" as work_excerpt %}
+    {% if work_excerpt %}<p class="card-text">{{ work_excerpt }}</p>{% endif %}
+    <a class="link-more" href="{{ work.get_absolute_url }}">{% t "common.more" %} →</a>
+  </div>
+</article>

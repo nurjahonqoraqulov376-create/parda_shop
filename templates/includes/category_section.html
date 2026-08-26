@@ -1,0 +1,17 @@
+{% load site_extras %}
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{% t "home.categories_title" %}</p>
+        <h2>{% tf category "name" %}</h2>
+      </div>
+      <a class="link-more" href="{{ category.get_absolute_url }}">{% t "home.view_all" %} →</a>
+    </div>
+    <div class="rail">
+      {% for product in products %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>

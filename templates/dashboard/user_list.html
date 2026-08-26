@@ -1,0 +1,53 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "dash.users" %}{% endblock %}
+
+{% block actions %}
+  <a class="button small" href="{% url 'dashboard:user_create' %}">+ {% t "dash.user_add" %}</a>
+{% endblock %}
+
+{% block content %}
+<form class="dash-filter" method="get">
+  <input class="field" type="search" name="q" value="{{ query }}" placeholder="{% t 'common.search' %}">
+  <button class="button ghost small" type="submit">{% t "common.search" %}</button>
+  <span class="muted">{{ total }}</span>
+</form>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Login</th><th>{% t "common.name" %}</th><th>{% t "common.email" %}</th>
+        <th>{% t "common.phone" %}</th><th>{% t "dash.role" %}</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for account in page_obj %}
+        <tr>
+          <td><a href="{% url 'dashboard:user_edit' account.pk %}">{{ account.username }}</a></td>
+          <td>{{ account.get_full_name|default:"—" }}</td>
+          <td>{{ account.email|default:"—" }}</td>
+          <td>{{ account.profile.phone|default:"—" }}</td>
+          <td>
+            {% if account.is_superuser %}
+              <span class="status status-admin">Superuser</span>
+            {% else %}
+              <span class="status status-{{ account.profile.role|default:'manager' }}">{{ account.profile.get_role_display|default:"—" }}</span>
+            {% endif %}
+          </td>
+          <td class="row-actions">
+            <a href="{% url 'dashboard:user_edit' account.pk %}">{% t "common.edit" %}</a>
+            {% if not account.is_superuser and account != user %}
+              <a class="danger" href="{% url 'dashboard:user_delete' account.pk %}">{% t "common.delete" %}</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">{% t "common.empty" %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'includes/pagination.html' %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "dash.leads" %} — {{ lead.name }}{% endblock %}
+
+{% block actions %}
+  <a class="button ghost small" href="{% url 'dashboard:lead_list' %}">← {% t "common.back" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="dash-cols">
+  <section class="panel">
+    <h2>{{ lead.name }}</h2>
+    <p><b>{% t "common.phone" %}:</b> <a href="tel:{{ lead.phone }}">{{ lead.phone }}</a></p>
+    <p><b>Turi:</b> {{ lead.get_lead_type_display }}</p>
+    <p class="muted">{{ lead.created_at|date:"d.m.Y H:i" }}</p>
+    {% if lead.message %}<p class="prose">{{ lead.message|linebreaks }}</p>{% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>{% t "common.status" %}</h2>
+    <form method="post" class="dash-form">
+      {% csrf_token %}
+      {% for field in form %}
+        <label class="field-row"><span>{{ field.label }}</span>{{ field }}</label>
+      {% endfor %}
+      <button class="button" type="submit">{% t "common.save" %}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

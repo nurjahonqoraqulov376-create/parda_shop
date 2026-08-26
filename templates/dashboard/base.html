@@ -1,0 +1,68 @@
+{% load static site_extras %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% t "dash.title" %}{% endblock %} — {{ site.brand_name }}</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body class="dash">
+
+<aside class="dash-side">
+  <a class="dash-brand" href="{% url 'dashboard:overview' %}">
+    <span class="brand-mark">S</span>
+    <span>{{ site.brand_name }}<small>{% t "dash.title" %}</small></span>
+  </a>
+
+  <nav class="dash-nav">
+    <a href="{% url 'dashboard:overview' %}">📊 {% t "dash.overview" %}</a>
+    <a href="{% url 'dashboard:order_list' %}">🧾 {% t "dash.orders" %}</a>
+    <a href="{% url 'dashboard:lead_list' %}">📞 {% t "dash.leads" %}</a>
+    <a href="{% url 'dashboard:section_list' 'mahsulotlar' %}">🛍 {% t "dash.products" %}</a>
+    <a href="{% url 'dashboard:section_list' 'kategoriyalar' %}">🗂 {% t "dash.categories" %}</a>
+    <a href="{% url 'dashboard:section_list' 'ishlarimiz' %}">✦ {% t "dash.works" %}</a>
+    {% if is_site_admin %}
+      <p class="dash-nav-title">{% t "dash.content" %}</p>
+      <a href="{% url 'dashboard:section_list' 'bannerlar' %}">🖼 {% t "dash.banners" %}</a>
+      <a href="{% url 'dashboard:section_list' 'afzalliklar' %}">★ {% t "dash.advantages" %}</a>
+      <a href="{% url 'dashboard:section_list' 'matn-bloklari' %}">📄 Kontent bloklari</a>
+      <p class="dash-nav-title">Administrator</p>
+      <a href="{% url 'dashboard:user_list' %}">👤 {% t "dash.users" %}</a>
+      <a href="{% url 'dashboard:settings' %}">⚙ {% t "dash.settings" %}</a>
+    {% endif %}
+  </nav>
+
+  <div class="dash-side-foot">
+    <p class="muted">{{ user.get_username }} · {% if is_site_admin %}Administrator{% else %}Menejer{% endif %}</p>
+    <a class="link-more" href="{% url 'pages:home' %}">← {% t "dash.to_site" %}</a>
+    <form method="post" action="{% url 'dashboard:logout' %}" class="dash-logout-form">
+      {% csrf_token %}
+      <button type="submit" class="link-more dash-logout-btn">⏻ {% t "dash.logout" %}</button>
+    </form>
+  </div>
+</aside>
+
+<main class="dash-main">
+  <header class="dash-head">
+    <h1>{% block heading %}{% t "dash.title" %}{% endblock %}</h1>
+    <div class="dash-head-actions">{% block actions %}{% endblock %}</div>
+  </header>
+
+  {% if messages %}
+    <div class="flashes">
+      {% for message in messages %}<div class="flash {{ message.tags }}">{{ message }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+  document.querySelectorAll('.dash-filter select').forEach(function (select) {
+    select.addEventListener('change', function () {
+      select.closest('form').submit();
+    });
+  });
+</script>
+</body>
+</html>

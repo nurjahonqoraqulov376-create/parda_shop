@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "page.about_title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">{{ site.brand_name }}</p>
+    <h1>{% t "page.about_title" %}</h1>
+    <p class="lead">{% tf site "tagline" %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap narrow">
+    {% tf site "about_full" as about_text %}
+    <div class="prose">{{ about_text|linebreaks }}</div>
+  </div>
+</section>
+
+{% include 'includes/advantages.html' with advantages=advantages %}
+
+<section class="section cta cta-soft">
+  <div class="wrap cta-inner">
+    <div>
+      <h2>{% t "home.consult_title" %}</h2>
+      <p class="lead">{% t "home.consult_lead" %}</p>
+    </div>
+    {% include 'includes/lead_form.html' with lead_type="consultation" with_message=True %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% tf product "name" %} — {{ site.brand_name }}{% endblock %}
+{% block description %}{% tf product "short_description" %}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap detail">
+    <div class="detail-gallery">
+      <div class="detail-main" data-gallery-main>
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{% tf product 'name' %}"
+               width="1000" height="750" fetchpriority="high">
+        {% else %}
+          <span class="placeholder large">{{ product.name|slice:":1" }}</span>
+        {% endif %}
+      </div>
+      {% if product.images.all %}
+        <div class="detail-thumbs">
+          {% if product.image %}
+            <button type="button" class="thumb active" data-src="{{ product.image.url }}">
+              <img src="{{ product.image.url }}" alt="" width="1000" height="750" loading="lazy">
+            </button>
+          {% endif %}
+          {% for photo in product.images.all %}
+            <button type="button" class="thumb" data-src="{{ photo.image.url }}">
+              <img src="{{ photo.image.url }}" alt="" width="1000" height="750" loading="lazy">
+            </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if product.image %}
+      <div class="lightbox" data-lightbox hidden>
+        <div class="lightbox-backdrop" data-lightbox-close></div>
+        <img src="{{ product.image.url }}" alt="{% tf product 'name' %}">
+        <button type="button" class="lightbox-nav lightbox-prev" data-lightbox-prev aria-label="←">‹</button>
+        <button type="button" class="lightbox-nav lightbox-next" data-lightbox-next aria-label="→">›</button>
+        <button type="button" class="lightbox-nav lightbox-close" data-lightbox-close
+                aria-label="{% t 'common.close' %}">×</button>
+      </div>
+    {% endif %}
+
+    <div class="detail-info">
+      {% if product.category %}
+        <p class="eyebrow"><a href="{{ product.category.get_absolute_url }}">{% tf product.category "name" %}</a></p>
+      {% endif %}
+      <h1>{% tf product "name" %}</h1>
+      {% if product.sku %}<p class="muted">{% t "product.sku" %}: {{ product.sku }}</p>{% endif %}
+
+      <div class="detail-price">
+        {% if product.old_price %}<s>{{ product.old_price|money }}</s>{% endif %}
+        <b>{{ product.price|money }} {% t "common.currency" %}</b>
+        {% if product.discount_percent %}<span class="badge">−{{ product.discount_percent }}%</span>{% endif %}
+      </div>
+
+      <p class="lead">{% tf product "short_description" %}</p>
+
+      <p class="stock {% if not product.in_stock %}out{% endif %}">
+        {% if product.in_stock %}✓ {% t "product.in_stock" %} — {{ product.stock }} {% t "common.pcs" %}
+        {% else %}× {% t "product.out_of_stock" %}{% endif %}
+      </p>
+
+      <form class="buy-form" method="post" action="{% url 'orders:cart_add' product.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'orders:cart_detail' %}">
+        <label class="qty">
+          <span>{% t "product.quantity" %}</span>
+          <input class="field" type="number" name="quantity" min="1" value="1">
+        </label>
+        <button class="button" type="submit">{% t "product.add_to_cart" %}</button>
+        <button class="button ghost" type="button" data-modal-open="callback">{% t "topbar.callback" %}</button>
+      </form>
+
+      <div class="detail-desc">
+        <h2>{% t "product.description" %}</h2>
+        {% tf product "description" as desc_text %}
+        <div class="prose">{{ desc_text|linebreaks }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if related %}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><div><h2>{% t "product.related" %}</h2></div></div>
+      <div class="grid-4">
+        {% for item in related %}{% include 'includes/product_card.html' with product=item %}{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

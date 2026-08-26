@@ -1,0 +1,21 @@
+{% load site_extras %}
+<section class="section advantages">
+  <div class="wrap">
+    <div class="section-head center">
+      <div>
+        <p class="eyebrow">{% t "brand.name" %}</p>
+        <h2>{% t "home.advantages_title" %}</h2>
+        <p class="lead">{% t "home.advantages_lead" %}</p>
+      </div>
+    </div>
+    <div class="adv-grid">
+      {% for item in advantages %}
+        <div class="adv-item">
+          <span class="adv-icon">{{ item.icon }}</span>
+          <h3>{% tf item "title" %}</h3>
+          <p>{% tf item "text" %}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

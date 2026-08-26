@@ -1,0 +1,49 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "dash.leads" %}{% endblock %}
+
+{% block content %}
+<form class="dash-filter" method="get">
+  <select class="field" name="status">
+    <option value="">{% t "common.all" %}</option>
+    {% for value, label in statuses %}
+      <option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select class="field" name="type">
+    <option value="">{% t "common.all" %}</option>
+    {% for value, label in types %}
+      <option value="{{ value }}"{% if lead_type == value %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="button ghost small" type="submit">{% t "catalog.apply" %}</button>
+  <span class="muted">{{ total }}</span>
+</form>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{% t "common.name" %}</th><th>{% t "common.phone" %}</th><th>Turi</th>
+        <th>{% t "common.status" %}</th><th>Mas’ul</th><th>{% t "common.date" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in page_obj %}
+        <tr>
+          <td><a href="{% url 'dashboard:lead_detail' lead.pk %}">{{ lead.name }}</a></td>
+          <td><a href="tel:{{ lead.phone }}">{{ lead.phone }}</a></td>
+          <td>{{ lead.get_lead_type_display }}</td>
+          <td><span class="status status-{{ lead.status }}">{{ lead.get_status_display }}</span></td>
+          <td class="muted">{{ lead.handled_by|default:"—" }}</td>
+          <td class="muted">{{ lead.created_at|date:"d.m.Y H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">{% t "common.empty" %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'includes/pagination.html' %}
+{% endblock %}

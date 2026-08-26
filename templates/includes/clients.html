@@ -1,0 +1,24 @@
+{% load site_extras %}
+{% if clients %}
+  <section class="section clients">
+    <div class="wrap">
+      <div class="section-head center">
+        <div>
+          <h2>{% t "home.clients_title" %}</h2>
+          <p class="lead">{% t "home.clients_lead" %}</p>
+        </div>
+      </div>
+      <div class="client-row">
+        {% for item in clients %}
+          {% if item.url %}<a class="client-logo" href="{{ item.url }}" target="_blank" rel="noopener">{% else %}<span class="client-logo">{% endif %}
+            {% if item.logo %}
+              <img src="{{ item.logo.url }}" alt="{{ item.name }}" loading="lazy" width="440" height="170">
+            {% else %}
+              <b>{{ item.name }}</b>
+            {% endif %}
+          {% if item.url %}</a>{% else %}</span>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}

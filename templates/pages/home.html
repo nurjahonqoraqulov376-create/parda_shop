@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+
+{# Bo'limlar tartibi: hero → kategoriya bo'limlari (mahsulot to'rlari) →
+   afzalliklar → mijozlar fikri → hamkorlar → mening ishlarim → ariza formasi. #}
+
+{% block content %}
+
+<!-- 1. HERO -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-slides" data-slider>
+      {% for banner in banners %}
+        <div class="hero-slide{% if forloop.first %} active{% endif %}">
+          <div class="hero-text">
+            <p class="eyebrow">{{ site.brand_name }}</p>
+            <h1>{% tf banner "title" %}</h1>
+            <p class="lead">{% tf banner "subtitle" %}</p>
+            {% if banner.button_url %}
+              {% tf banner "button_text" as btn %}
+              {% t "common.more" as more_label %}
+              <a class="button" href="{{ banner.button_url }}">{{ btn|default:more_label }} →</a>
+            {% endif %}
+          </div>
+          <div class="hero-media">
+            {% if banner.image %}
+              <img src="{{ banner.image.url }}" alt="{% tf banner 'title' %}"
+                   width="1600" height="900" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+            {% else %}
+              <div class="hero-art">✦</div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="hero-slide active">
+          <div class="hero-text">
+            <p class="eyebrow">{{ site.brand_name }}</p>
+            <h1>{% t "brand.tagline" %}</h1>
+            <p class="lead">{% t "home.categories_lead" %}</p>
+            <a class="button" href="{% url 'catalog:list' %}">{% t "nav.catalog" %} →</a>
+          </div>
+          <div class="hero-media"><div class="hero-art">✦</div></div>
+        </div>
+      {% endfor %}
+    </div>
+    {% if banners|length > 1 %}
+      <div class="hero-dots" data-slider-dots>
+        {% for banner in banners %}<button type="button" class="dot{% if forloop.first %} active{% endif %}" data-index="{{ forloop.counter0 }}"></button>{% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- 1a. RAQAMLAR -->
+<section class="stats">
+  <div class="wrap stats-grid">
+    <div>
+      <b class="stat-num" data-count="{{ stats.years }}" data-count-suffix="+">0</b>
+      <span class="stat-label">{% t "stats.years" %}</span>
+    </div>
+    <div>
+      <b class="stat-num" data-count="{{ stats.products }}" data-count-suffix="+">0</b>
+      <span class="stat-label">{% t "stats.products" %}</span>
+    </div>
+    <div>
+      <b class="stat-num" data-count="{{ stats.categories }}">0</b>
+      <span class="stat-label">{% t "stats.categories" %}</span>
+    </div>
+    <div>
+      <b class="stat-num" data-count="{{ stats.districts }}">0</b>
+      <span class="stat-label">{% t "stats.districts" %}</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2. KATEGORIYALAR (tezkor navigatsiya) -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head center">
+      <div>
+        <p class="eyebrow">{% t "nav.catalog" %}</p>
+        <h2>{% t "home.categories_title" %}</h2>
+        <p class="lead">{% t "home.categories_lead" %}</p>
+      </div>
+    </div>
+    <div class="cat-grid">
+      {% for category in home_categories %}
+        <a class="cat-tile" href="{{ category.get_absolute_url }}">
+          {% if category.image %}
+            <img src="{{ category.image.url }}" alt="{% tf category 'name' %}" loading="lazy" width="1000" height="750">
+          {% else %}
+            <span class="cat-icon">{{ category.icon|default:"▦" }}</span>
+          {% endif %}
+          <span class="cat-name">{% tf category "name" %}</span>
+          {% if category.min_price %}
+            <span class="cat-price">{% t "common.from" %} {{ category.min_price|money }} {% t "common.currency" %}</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 3. KATEGORIYA BO'LIMLARI — har bir tur alohida mahsulot to'ri -->
+{% for section in sections %}
+  {% include 'includes/category_section.html' with category=section.category products=section.products %}
+  {% if forloop.counter == 2 %}
+    <!-- BUYURTMA FORMASI (bo'limlar orasida) -->
+    <section class="section cta cta-dark">
+      <div class="wrap cta-inner">
+        <div>
+          <h2>{% t "home.order_title" %}</h2>
+          <p class="lead">{% t "home.order_lead" %}</p>
+        </div>
+        {% include 'includes/lead_form.html' with lead_type="order" %}
+      </div>
+    </section>
+  {% endif %}
+{% endfor %}
+
+<!-- 4. OMMABOP MAHSULOTLAR -->
+{% if featured %}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">{{ site.brand_name }}</p>
+          <h2>{% t "home.popular" %}</h2>
+        </div>
+        <a class="link-more" href="{% url 'catalog:list' %}">{% t "home.view_all" %} →</a>
+      </div>
+      <div class="rail">
+        {% for product in featured %}{% include 'includes/product_card.html' with product=product %}{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<!-- 5. CHEGIRMA -->
+<section class="section cta cta-accent">
+  <div class="wrap cta-inner">
+    <div>
+      <span class="cta-badge">−10%</span>
+      <h2>{% t "home.discount_title" %}</h2>
+      <p class="lead">{% t "home.discount_lead" %}</p>
+    </div>
+    {% include 'includes/lead_form.html' with lead_type="discount" %}
+  </div>
+</section>
+
+<!-- 6. YANGI MAHSULOTLAR -->
+{% if newest %}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">{{ site.brand_name }}</p>
+          <h2>{% t "home.new_products" %}</h2>
+        </div>
+        <a class="link-more" href="{% url 'catalog:list' %}?sort=new">{% t "home.view_all" %} →</a>
+      </div>
+      <div class="rail">
+        {% for product in newest %}{% include 'includes/product_card.html' with product=product %}{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<!-- 7. AFZALLIKLAR -->
+{% include 'includes/advantages.html' with advantages=advantages %}
+
+<!-- 8. MIJOZLAR FIKRI -->
+{% include 'includes/testimonials.html' with testimonials=testimonials %}
+
+<!-- 9. HAMKORLAR -->
+{% include 'includes/clients.html' with clients=clients %}
+
+<!-- 10. MENING ISHLARIM (bajarilgan pardalar) -->
+{% if works %}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">{{ site.brand_name }}</p>
+          <h2>{% t "home.works_title" %}</h2>
+          <p class="lead">{% t "home.works_lead" %}</p>
+        </div>
+        <a class="link-more" href="{% url 'pages:works' %}">{% t "home.view_all" %} →</a>
+      </div>
+      <div class="grid-3">
+        {% for work in works %}
+          {% include 'includes/work_card.html' with work=work %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<!-- 11. BEPUL KONSULTATSIYA -->
+<section class="section cta cta-soft">
+  <div class="wrap cta-inner">
+    <div>
+      <h2>{% t "home.consult_title" %}</h2>
+      <p class="lead">{% t "home.consult_lead" %}</p>
+    </div>
+    {% include 'includes/lead_form.html' with lead_type="consultation" with_message=True %}
+  </div>
+</section>
+
+<!-- 12. SEO MATN BLOKLARI -->
+{% if content_blocks %}
+  <section class="section seo-blocks">
+    <div class="wrap narrow">
+      {% for block in content_blocks %}
+        {% tf block "body" as block_body %}
+        <article class="seo-block">
+          <h2>{% tf block "title" %}</h2>
+          <div class="prose">{{ block_body|safe }}</div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% endblock %}

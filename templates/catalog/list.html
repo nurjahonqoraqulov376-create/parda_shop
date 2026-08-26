@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "catalog.title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">{{ site.brand_name }}</p>
+    <h1>{% t "catalog.title" %}</h1>
+    <p class="lead">{{ total }} {% t "catalog.found" %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {% include 'includes/catalog_toolbar.html' with show_category_filter=True %}
+    <div class="grid-4">
+      {% for product in page_obj %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% empty %}
+        <p class="muted">{% t "catalog.empty" %}</p>
+      {% endfor %}
+    </div>
+    {% include 'includes/pagination.html' %}
+  </div>
+</section>
+{% endblock %}

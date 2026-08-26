@@ -1,0 +1,47 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "dash.orders" %} #{{ order.pk }}{% endblock %}
+
+{% block actions %}
+  <a class="button ghost small" href="{% url 'dashboard:order_list' %}">← {% t "common.back" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="dash-cols">
+  <section class="panel">
+    <h2>{% t "order.your_order" %}</h2>
+    <table class="table">
+      <tbody>
+        {% for item in order.items.all %}
+          <tr>
+            <td>{{ item.product.name }}</td>
+            <td>× {{ item.quantity }}</td>
+            <td><b>{{ item.total|money }}</b></td>
+          </tr>
+        {% endfor %}
+        <tr><td colspan="2"><b>{% t "common.total" %}</b></td><td><b>{{ order.total_amount|money }}</b></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Mijoz</h2>
+    <p><b>{% t "order.full_name" %}:</b> {{ order.full_name }}</p>
+    <p><b>{% t "common.phone" %}:</b> <a href="tel:{{ order.phone }}">{{ order.phone }}</a></p>
+    {% if order.region %}<p><b>{% t "order.region" %}:</b> {{ order.region|district }}</p>{% endif %}
+    <p><b>{% t "common.address" %}:</b> {{ order.address }}</p>
+    <p class="muted">{{ order.created_at|date:"d.m.Y H:i" }}</p>
+  </section>
+
+  <section class="panel">
+    <h2>{% t "common.status" %}</h2>
+    <form method="post" class="dash-form">
+      {% csrf_token %}
+      {% for field in form %}
+        <label class="field-row"><span>{{ field.label }}</span>{{ field }}</label>
+      {% endfor %}
+      <button class="button" type="submit">{% t "common.save" %}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

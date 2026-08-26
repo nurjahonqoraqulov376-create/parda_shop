@@ -1,0 +1,58 @@
+{% load static site_extras %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% t "auth.login_title" %} — {% t "dash.title" %}</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body class="dash-login">
+
+<div class="login-card">
+  <div class="login-brand">
+    <span class="brand-mark">S</span>
+    <span>Sevara Design<small>{% t "dash.title" %}</small></span>
+  </div>
+
+  <h1>{% t "auth.login_title" %}</h1>
+  <p class="muted">Bu bo‘lim faqat xodimlar uchun.</p>
+
+  <form method="post" class="dash-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="flash error">{{ form.non_field_errors|striptags }}</div>
+    {% endif %}
+    {% for field in form %}
+      <label class="field-row">
+        <span>{{ field.label }}</span>
+        {% if field.name == 'password' %}
+          <span class="password-wrap">
+            {{ field }}
+            <button type="button" class="password-toggle" data-password-toggle aria-label="{% t 'auth.show_password' %}">👁</button>
+          </span>
+        {% else %}
+          {{ field }}
+        {% endif %}
+        {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+      </label>
+    {% endfor %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <button class="button" type="submit">{% t "nav.login" %} →</button>
+  </form>
+
+  <p class="login-foot"><a href="{% url 'pages:home' %}">← {% t "dash.to_site" %}</a></p>
+</div>
+
+<script>
+document.querySelectorAll('[data-password-toggle]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var input = btn.previousElementSibling;
+    var showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.classList.toggle('is-visible', !showing);
+    btn.textContent = showing ? '👁' : '🙈';
+  });
+});
+</script>
+</body>
+</html>

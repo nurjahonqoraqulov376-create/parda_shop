@@ -1,0 +1,51 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras dashboard_extras %}
+{% block heading %}{{ section.title }}{% endblock %}
+
+{% block actions %}
+  <a class="button small" href="{% url 'dashboard:section_create' section_key %}">+ {% t "common.add" %}</a>
+{% endblock %}
+
+{% block content %}
+<form class="dash-filter" method="get">
+  <input class="field" type="search" name="q" value="{{ query }}" placeholder="{% t 'common.search' %}">
+  <button class="button ghost small" type="submit">{% t "common.search" %}</button>
+  <span class="muted">{{ total }}</span>
+</form>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr>
+        {% for label, attr in section.columns %}<th>{{ label }}</th>{% endfor %}
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for object in page_obj %}
+        <tr>
+          {% for label, attr in section.columns %}
+            <td>
+              {% if forloop.first %}
+                <a href="{% url 'dashboard:section_edit' section_key object.pk %}">{% cell object attr %}</a>
+              {% else %}
+                {% cell object attr %}
+              {% endif %}
+            </td>
+          {% endfor %}
+          <td class="row-actions">
+            <a href="{% url 'dashboard:section_edit' section_key object.pk %}">{% t "common.edit" %}</a>
+            {% if is_site_admin %}
+              <a class="danger" href="{% url 'dashboard:section_delete' section_key object.pk %}">{% t "common.delete" %}</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="muted">{% t "common.empty" %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'includes/pagination.html' %}
+{% endblock %}

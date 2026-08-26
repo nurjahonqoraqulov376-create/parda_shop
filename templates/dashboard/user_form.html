@@ -1,0 +1,40 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% if account %}{{ account.username }}{% else %}{% t "dash.user_add" %}{% endif %}{% endblock %}
+
+{% block actions %}
+  <a class="button ghost small" href="{% url 'dashboard:user_list' %}">← {% t "common.back" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="panel narrow-panel">
+  {% if account %}
+    <p class="muted">{{ account.email|default:"—" }} · {{ account.date_joined|date:"d.m.Y" }}</p>
+    {% if account.is_superuser %}
+      <p class="hint">Bu foydalanuvchi superuser — u har doim to‘liq huquqqa ega.</p>
+    {% endif %}
+  {% else %}
+    <p class="muted">Yangi xodim yarating — u shu login va parol bilan boshqaruv paneliga kiradi.</p>
+  {% endif %}
+
+  <form method="post" class="dash-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="flash error">{{ form.non_field_errors|striptags }}</div>{% endif %}
+    {% for field in form %}
+      <label class="field-row">
+        <span>{{ field.label }}</span>
+        {{ field }}
+        {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
+        {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+      </label>
+    {% endfor %}
+    <div class="form-actions">
+      <button class="button" type="submit">{% t "common.save" %}</button>
+      <a class="button ghost" href="{% url 'dashboard:user_list' %}">{% t "common.cancel" %}</a>
+      {% if account and not account.is_superuser and account != user %}
+        <a class="button danger" href="{% url 'dashboard:user_delete' account.pk %}">{% t "common.delete" %}</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

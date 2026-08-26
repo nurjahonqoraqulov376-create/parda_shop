@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "order.checkout_title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">{{ site.brand_name }}</p>
+    <h1>{% t "order.checkout_title" %}</h1>
+    <p class="lead">{% t "common.required_note" %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap checkout-grid">
+    <div class="form-card">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <label class="field-row">
+            <span>{{ field.label }}{% if field.field.required %} *{% endif %}</span>
+            {{ field }}
+            {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+          </label>
+        {% endfor %}
+        <button class="button full" type="submit">{% t "order.confirm" %} →</button>
+      </form>
+    </div>
+
+    <aside class="summary">
+      <h2>{% t "order.your_order" %}</h2>
+      <ul class="summary-list">
+        {% for row in cart %}
+          <li>
+            <span>{% tf row.product "name" %} × {{ row.quantity }}</span>
+            <b>{{ row.total|money }}</b>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="summary-total">
+        <span>{% t "common.total" %}</span>
+        <b>{{ cart.total|money }} {% t "common.currency" %}</b>
+      </div>
+      <a class="link-more" href="{% url 'orders:cart_detail' %}">← {% t "cart.title" %}</a>
+    </aside>
+  </div>
+</section>
+{% endblock %}

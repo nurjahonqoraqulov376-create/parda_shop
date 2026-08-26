@@ -1,0 +1,15 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "common.delete" %}{% endblock %}
+
+{% block content %}
+<div class="panel narrow-panel">
+  <p>{% t "dash.delete_confirm" %}</p>
+  <p><b>{{ object }}</b></p>
+  <form method="post" class="form-actions">
+    {% csrf_token %}
+    <button class="button danger" type="submit">{% t "common.delete" %}</button>
+    <a class="button ghost" href="{{ cancel_url }}">{% t "common.cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

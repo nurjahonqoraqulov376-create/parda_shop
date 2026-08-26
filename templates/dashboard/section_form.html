@@ -1,0 +1,28 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{{ section.title }} — {% if object %}{% t "common.edit" %}{% else %}{% t "common.add" %}{% endif %}{% endblock %}
+
+{% block actions %}
+  <a class="button ghost small" href="{% url 'dashboard:section_list' section_key %}">← {% t "common.back" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <form method="post" enctype="multipart/form-data" class="dash-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <label class="field-row">
+        <span>{{ field.label }}</span>
+        {{ field }}
+        {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
+        {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+      </label>
+    {% endfor %}
+    <div class="form-actions">
+      <button class="button" type="submit">{% t "common.save" %}</button>
+      <a class="button ghost" href="{% url 'dashboard:section_list' section_key %}">{% t "common.cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

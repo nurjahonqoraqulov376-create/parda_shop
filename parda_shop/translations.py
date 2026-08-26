@@ -1,0 +1,404 @@
+"""Interfeys matnlari uchun sodda lug‘at.
+
+Bu mashinada GNU gettext (msgfmt/xgettext) yo‘q, shuning uchun `compilemessages`
+ishlamaydi. URL prefiksi uchun Django `i18n_patterns` ishlatiladi, interfeys
+matnlari esa shu lug‘atdan `{% t "kalit" %}` template tag orqali olinadi.
+Model kontenti alohida `_ru` maydonlarida saqlanadi (`TranslatableMixin`).
+"""
+
+DEFAULT_LANGUAGE = 'uz'
+
+UI = {
+    'uz': {
+        # --- umumiy ---
+        'brand.name': 'Sevara Design',
+        'brand.tagline': 'Zamonaviy pardalar',
+        'common.more': 'Batafsil',
+        'common.all': 'Barchasi',
+        'common.search': 'Qidiruv',
+        'common.search_placeholder': 'Parda qidiring...',
+        'common.send': 'Yuborish',
+        'common.save': 'Saqlash',
+        'common.cancel': 'Bekor qilish',
+        'common.delete': 'O‘chirish',
+        'common.edit': 'Tahrirlash',
+        'common.add': 'Qo‘shish',
+        'common.back': 'Orqaga',
+        'common.close': 'Yopish',
+        'common.from': 'dan',
+        'common.currency': 'so‘m',
+        'common.pcs': 'dona',
+        'common.phone': 'Telefon',
+        'common.name': 'Ism',
+        'common.email': 'Email',
+        'common.address': 'Manzil',
+        'common.comment': 'Izoh',
+        'common.status': 'Holat',
+        'common.date': 'Sana',
+        'common.total': 'Jami',
+        'common.empty': 'Ma’lumot topilmadi',
+        'common.required_note': 'Yulduzchali maydonlar to‘ldirilishi shart',
+        'common.home': 'Bosh sahifa',
+
+        # --- navigatsiya ---
+        'nav.home': 'Bosh sahifa',
+        'nav.catalog': 'Katalog',
+        'nav.about': 'Biz haqimizda',
+        'nav.services': 'Xizmatlar',
+        'nav.works': 'Mening ishlarim',
+        'nav.contact': 'Aloqa',
+        'nav.cart': 'Savat',
+        'nav.login': 'Kirish',
+        'nav.logout': 'Chiqish',
+        'nav.dashboard': 'Boshqaruv',
+        'nav.menu': 'Menyu',
+
+        # --- topbar ---
+        'topbar.call_measurer': 'Bepul o‘lchovchi chaqirish',
+        'topbar.callback': 'Qo‘ng‘iroqni so‘rash',
+        'topbar.worktime': 'Har kuni 9:00 – 19:00',
+
+        # --- bosh sahifa ---
+        'home.categories_title': 'Mahsulot turlari',
+        'home.categories_lead': 'Har bir deraza uchun mos yechim tanlang',
+        'home.advantages_title': 'Nima uchun aynan biz?',
+        'home.advantages_lead': 'Sifat, ishonch va uzoq muddatli xizmat',
+        'home.order_title': 'Buyurtma berish',
+        'home.order_lead': 'Ism va telefon raqamingizni qoldiring — 15 daqiqada aloqaga chiqamiz.',
+        'home.discount_title': '10% chegirma oling',
+        'home.discount_lead': 'Bugun ariza qoldiring va birinchi buyurtmangizga chegirmaga ega bo‘ling.',
+        'home.consult_title': 'Bepul konsultatsiya',
+        'home.consult_lead': 'Dizayner mutaxassisimiz sizga mos matoni tanlashda yordam beradi.',
+        'home.works_title': 'Mening ishlarim',
+        'home.works_lead': 'O‘z qo‘limiz bilan tikilgan va o‘rnatilgan pardalar',
+        'home.new_products': 'Yangi mahsulotlar',
+        'home.popular': 'Ommabop mahsulotlar',
+        'home.testimonials_title': 'Mijozlar fikri',
+        'home.testimonials_lead': 'Bizga ishonch bildirgan mijozlarimiz nima deydi',
+        'home.clients_title': 'Bizga ishonishadi',
+        'home.clients_lead': 'Ular bilan birga ishlaymiz',
+        'home.view_all': 'Barchasini ko‘rish',
+
+        # --- katalog ---
+        'catalog.title': 'Katalog',
+        'catalog.filters': 'Filtrlar',
+        'catalog.category': 'Kategoriya',
+        'catalog.price_from': 'Narx (dan)',
+        'catalog.price_to': 'Narx (gacha)',
+        'catalog.apply': 'Qo‘llash',
+        'catalog.reset': 'Tozalash',
+        'catalog.sort': 'Saralash',
+        'catalog.sort_new': 'Yangilari',
+        'catalog.sort_price_asc': 'Arzonidan qimmatiga',
+        'catalog.sort_price_desc': 'Qimmatidan arzoniga',
+        'catalog.sort_name': 'Nomi bo‘yicha',
+        'catalog.found': 'ta mahsulot topildi',
+        'catalog.empty': 'Bu shartlarga mos mahsulot topilmadi.',
+        'catalog.search_results': 'Qidiruv natijalari',
+
+        # --- mahsulot ---
+        'product.add_to_cart': 'Savatga qo‘shish',
+        'product.in_stock': 'Omborda mavjud',
+        'product.out_of_stock': 'Hozircha mavjud emas',
+        'product.description': 'Tavsif',
+        'product.related': 'O‘xshash mahsulotlar',
+        'product.quantity': 'Miqdor',
+        'product.sku': 'Artikul',
+        'product.added': 'Mahsulot savatga qo‘shildi.',
+
+        # --- savat ---
+        'cart.title': 'Savat',
+        'cart.empty': 'Savatingiz bo‘sh.',
+        'cart.continue': 'Xaridni davom ettirish',
+        'cart.checkout': 'Buyurtmani rasmiylashtirish',
+        'cart.update': 'Yangilash',
+        'cart.remove': 'O‘chirish',
+        'cart.removed': 'Mahsulot savatdan olib tashlandi.',
+        'cart.updated': 'Savat yangilandi.',
+        'cart.product': 'Mahsulot',
+        'cart.price': 'Narx',
+        'cart.sum': 'Summa',
+
+        # --- buyurtma ---
+        'order.checkout_title': 'Buyurtmani rasmiylashtirish',
+        'order.your_order': 'Sizning buyurtmangiz',
+        'order.confirm': 'Buyurtmani tasdiqlash',
+        'order.success_title': 'Buyurtmangiz qabul qilindi!',
+        'order.success_lead': 'Menejerimiz tez orada siz bilan bog‘lanadi.',
+        'order.number': 'Buyurtma raqami',
+        'order.full_name': 'Ism-familiya',
+        'order.region': 'Tuman / shahar',
+        'order.region_help': 'Biz Surxondaryo viloyati bo‘ylab yetkazib beramiz.',
+
+        # --- ariza (lead) ---
+        'lead.name_placeholder': 'Ismingiz',
+        'lead.phone_placeholder': '+998 90 123 45 67',
+        'lead.message_placeholder': 'Xabaringiz (ixtiyoriy)',
+        'lead.submit': 'Ariza qoldirish',
+        'lead.success': 'Arizangiz qabul qilindi! Tez orada bog‘lanamiz.',
+        'lead.error': 'Iltimos, ism va telefon raqamini to‘g‘ri kiriting.',
+
+        # --- interfeys ---
+        'theme.toggle': 'Yorug‘ / tungi rejim',
+
+        # --- raqamlar ---
+        'stats.years': 'Yillik tajriba',
+        'stats.products': 'Mahsulot turi',
+        'stats.categories': 'Kategoriya',
+        'stats.districts': 'Tuman va shahar',
+
+        # --- bildirishnoma (popup) ---
+        'popup.title': 'Parda tanlashda yordam beramiz',
+        'popup.text': 'Telefon raqamingizni qoldiring — mutaxassisimiz qo‘ng‘iroq qilib, '
+                      'o‘lchov va model tanlash bo‘yicha bepul maslahat beradi.',
+
+        # --- sahifalar ---
+        'page.about_title': 'Biz haqimizda',
+        'page.services_title': 'Xizmatlar',
+        'page.works_title': 'Mening ishlarim',
+        'page.works_lead': 'Tayyorlangan va o‘rnatilgan pardalarimiz to‘plami',
+        'page.contact_title': 'Aloqa',
+        'page.contact_lead': 'Savolingiz bormi? Biz bilan bog‘laning.',
+        'page.our_contacts': 'Kontaktlarimiz',
+        'page.working_hours': 'Ish vaqti',
+
+        # --- footer ---
+        'footer.about': 'Biz haqimizda',
+        'footer.catalog': 'Katalog',
+        'footer.contacts': 'Kontaktlar',
+        'footer.social': 'Ijtimoiy tarmoqlar',
+        'footer.rights': 'Barcha huquqlar himoyalangan.',
+
+        # --- auth (faqat xodimlar uchun) ---
+        'auth.login_title': 'Tizimga kirish',
+        'auth.show_password': 'Parolni ko‘rsatish',
+
+        # --- boshqaruv paneli ---
+        'dash.title': 'Boshqaruv paneli',
+        'dash.overview': 'Umumiy',
+        'dash.products': 'Mahsulotlar',
+        'dash.categories': 'Kategoriyalar',
+        'dash.orders': 'Buyurtmalar',
+        'dash.leads': 'So‘rovlar',
+        'dash.content': 'Kontent',
+        'dash.banners': 'Bannerlar',
+        'dash.advantages': 'Afzalliklar',
+        'dash.services': 'Xizmatlar',
+        'dash.works': 'Mening ishlarim',
+        'dash.users': 'Xodimlar',
+        'dash.user_add': 'Yangi xodim',
+        'dash.settings': 'Sozlamalar',
+        'dash.to_site': 'Saytga qaytish',
+        'dash.logout': 'Chiqish',
+        'dash.role': 'Rol',
+        'dash.low_stock': 'Kam qolgan mahsulotlar',
+        'dash.new_leads': 'Yangi so‘rovlar',
+        'dash.total_orders': 'Jami buyurtmalar',
+        'dash.total_products': 'Jami mahsulotlar',
+        'dash.saved': 'Saqlandi.',
+        'dash.deleted': 'O‘chirildi.',
+        'dash.delete_confirm': 'Rostdan ham o‘chirmoqchimisiz?',
+        'dash.no_access': 'Sizda bu bo‘limga ruxsat yo‘q.',
+        'dash.auto_translated': 'Saqlashda o‘zbekcha matndan avtomatik tarjima qilinadi.',
+    },
+    'ru': {
+        # --- общее ---
+        'brand.name': 'Sevara Design',
+        'brand.tagline': 'Современные шторы',
+        'common.more': 'Подробнее',
+        'common.all': 'Все',
+        'common.search': 'Поиск',
+        'common.search_placeholder': 'Найти шторы...',
+        'common.send': 'Отправить',
+        'common.save': 'Сохранить',
+        'common.cancel': 'Отмена',
+        'common.delete': 'Удалить',
+        'common.edit': 'Редактировать',
+        'common.add': 'Добавить',
+        'common.back': 'Назад',
+        'common.close': 'Закрыть',
+        'common.from': 'от',
+        'common.currency': 'сум',
+        'common.pcs': 'шт',
+        'common.phone': 'Телефон',
+        'common.name': 'Имя',
+        'common.email': 'Email',
+        'common.address': 'Адрес',
+        'common.comment': 'Комментарий',
+        'common.status': 'Статус',
+        'common.date': 'Дата',
+        'common.total': 'Итого',
+        'common.empty': 'Ничего не найдено',
+        'common.required_note': 'Поля со звёздочкой обязательны',
+        'common.home': 'Главная',
+
+        # --- навигация ---
+        'nav.home': 'Главная',
+        'nav.catalog': 'Каталог',
+        'nav.about': 'О нас',
+        'nav.services': 'Услуги',
+        'nav.works': 'Наши работы',
+        'nav.contact': 'Контакты',
+        'nav.cart': 'Корзина',
+        'nav.login': 'Вход',
+        'nav.logout': 'Выход',
+        'nav.dashboard': 'Панель',
+        'nav.menu': 'Меню',
+
+        # --- топбар ---
+        'topbar.call_measurer': 'Вызвать замерщика бесплатно',
+        'topbar.callback': 'Заказать звонок',
+        'topbar.worktime': 'Ежедневно 9:00 – 19:00',
+
+        # --- главная ---
+        'home.categories_title': 'Виды продукции',
+        'home.categories_lead': 'Выберите подходящее решение для каждого окна',
+        'home.advantages_title': 'Почему именно мы?',
+        'home.advantages_lead': 'Качество, доверие и долгий срок службы',
+        'home.order_title': 'Оформить заказ',
+        'home.order_lead': 'Оставьте имя и телефон — свяжемся в течение 15 минут.',
+        'home.discount_title': 'Получите скидку 10%',
+        'home.discount_lead': 'Оставьте заявку сегодня и получите скидку на первый заказ.',
+        'home.consult_title': 'Бесплатная консультация',
+        'home.consult_lead': 'Наш дизайнер поможет подобрать подходящую ткань.',
+        'home.works_title': 'Наши работы',
+        'home.works_lead': 'Шторы, которые мы сшили и установили своими руками',
+        'home.new_products': 'Новые товары',
+        'home.popular': 'Популярные товары',
+        'home.testimonials_title': 'Отзывы клиентов',
+        'home.testimonials_lead': 'Что говорят клиенты, доверившие нам свои окна',
+        'home.clients_title': 'Нам доверяют',
+        'home.clients_lead': 'С ними мы работаем',
+        'home.view_all': 'Смотреть все',
+
+        # --- каталог ---
+        'catalog.title': 'Каталог',
+        'catalog.filters': 'Фильтры',
+        'catalog.category': 'Категория',
+        'catalog.price_from': 'Цена (от)',
+        'catalog.price_to': 'Цена (до)',
+        'catalog.apply': 'Применить',
+        'catalog.reset': 'Сбросить',
+        'catalog.sort': 'Сортировка',
+        'catalog.sort_new': 'Новинки',
+        'catalog.sort_price_asc': 'Сначала дешевле',
+        'catalog.sort_price_desc': 'Сначала дороже',
+        'catalog.sort_name': 'По названию',
+        'catalog.found': 'товаров найдено',
+        'catalog.empty': 'По вашему запросу товары не найдены.',
+        'catalog.search_results': 'Результаты поиска',
+
+        # --- товар ---
+        'product.add_to_cart': 'В корзину',
+        'product.in_stock': 'В наличии',
+        'product.out_of_stock': 'Нет в наличии',
+        'product.description': 'Описание',
+        'product.related': 'Похожие товары',
+        'product.quantity': 'Количество',
+        'product.sku': 'Артикул',
+        'product.added': 'Товар добавлен в корзину.',
+
+        # --- корзина ---
+        'cart.title': 'Корзина',
+        'cart.empty': 'Ваша корзина пуста.',
+        'cart.continue': 'Продолжить покупки',
+        'cart.checkout': 'Оформить заказ',
+        'cart.update': 'Обновить',
+        'cart.remove': 'Удалить',
+        'cart.removed': 'Товар удалён из корзины.',
+        'cart.updated': 'Корзина обновлена.',
+        'cart.product': 'Товар',
+        'cart.price': 'Цена',
+        'cart.sum': 'Сумма',
+
+        # --- заказ ---
+        'order.checkout_title': 'Оформление заказа',
+        'order.your_order': 'Ваш заказ',
+        'order.confirm': 'Подтвердить заказ',
+        'order.success_title': 'Ваш заказ принят!',
+        'order.success_lead': 'Наш менеджер свяжется с вами в ближайшее время.',
+        'order.number': 'Номер заказа',
+        'order.full_name': 'Имя и фамилия',
+        'order.region': 'Район / город',
+        'order.region_help': 'Мы доставляем по всей Сурхандарьинской области.',
+
+        # --- заявка ---
+        'lead.name_placeholder': 'Ваше имя',
+        'lead.phone_placeholder': '+998 90 123 45 67',
+        'lead.message_placeholder': 'Ваше сообщение (необязательно)',
+        'lead.submit': 'Оставить заявку',
+        'lead.success': 'Заявка принята! Скоро свяжемся с вами.',
+        'lead.error': 'Пожалуйста, укажите имя и корректный номер телефона.',
+
+        # --- интерфейс ---
+        'theme.toggle': 'Светлая / тёмная тема',
+
+        # --- цифры ---
+        'stats.years': 'Лет опыта',
+        'stats.products': 'Видов товаров',
+        'stats.categories': 'Категорий',
+        'stats.districts': 'Районов и городов',
+
+        # --- уведомление (popup) ---
+        'popup.title': 'Поможем подобрать шторы',
+        'popup.text': 'Оставьте номер телефона — наш специалист перезвонит и бесплатно '
+                      'поможет с замером и выбором модели.',
+
+        # --- страницы ---
+        'page.about_title': 'О нас',
+        'page.services_title': 'Услуги',
+        'page.works_title': 'Наши работы',
+        'page.works_lead': 'Коллекция сшитых и установленных нами штор',
+        'page.contact_title': 'Контакты',
+        'page.contact_lead': 'Остались вопросы? Свяжитесь с нами.',
+        'page.our_contacts': 'Наши контакты',
+        'page.working_hours': 'Часы работы',
+
+        # --- подвал ---
+        'footer.about': 'О компании',
+        'footer.catalog': 'Каталог',
+        'footer.contacts': 'Контакты',
+        'footer.social': 'Соцсети',
+        'footer.rights': 'Все права защищены.',
+
+        # --- авторизация (только для сотрудников) ---
+        'auth.login_title': 'Вход в систему',
+        'auth.show_password': 'Показать пароль',
+
+        # --- панель управления ---
+        'dash.title': 'Панель управления',
+        'dash.overview': 'Обзор',
+        'dash.products': 'Товары',
+        'dash.categories': 'Категории',
+        'dash.orders': 'Заказы',
+        'dash.leads': 'Заявки',
+        'dash.content': 'Контент',
+        'dash.banners': 'Баннеры',
+        'dash.advantages': 'Преимущества',
+        'dash.services': 'Услуги',
+        'dash.works': 'Наши работы',
+        'dash.users': 'Сотрудники',
+        'dash.user_add': 'Новый сотрудник',
+        'dash.settings': 'Настройки',
+        'dash.to_site': 'Вернуться на сайт',
+        'dash.logout': 'Выйти',
+        'dash.role': 'Роль',
+        'dash.low_stock': 'Заканчивающиеся товары',
+        'dash.new_leads': 'Новые заявки',
+        'dash.total_orders': 'Всего заказов',
+        'dash.total_products': 'Всего товаров',
+        'dash.saved': 'Сохранено.',
+        'dash.deleted': 'Удалено.',
+        'dash.delete_confirm': 'Вы действительно хотите удалить?',
+        'dash.no_access': 'У вас нет доступа к этому разделу.',
+        'dash.auto_translated': 'Переводится автоматически из узбекского текста при сохранении.',
+    },
+}
+
+
+def translate(key, language=None):
+    """Kalit bo‘yicha matnni qaytaradi; topilmasa uz, u ham bo‘lmasa kalitning o‘zi."""
+    catalog = UI.get(language or DEFAULT_LANGUAGE)
+    if catalog and key in catalog:
+        return catalog[key]
+    return UI[DEFAULT_LANGUAGE].get(key, key)

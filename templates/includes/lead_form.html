@@ -1,0 +1,18 @@
+{% load site_extras %}
+<form class="lead-form" method="post" action="{% url 'orders:lead_create' %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <input type="hidden" name="lead_type" value="{{ lead_type|default:'callback' }}">
+  <label>
+    <input type="text" name="name" required maxlength="120" placeholder="{% t 'lead.name_placeholder' %}" aria-required="true">
+    <span style="position:absolute;color:#cf8248;margin-left:2px">*</span>
+  </label>
+  <label>
+    <input type="tel" name="phone" required maxlength="30" placeholder="{% t 'lead.phone_placeholder' %}" aria-required="true">
+    <span style="position:absolute;color:#cf8248;margin-left:2px">*</span>
+  </label>
+  {% if with_message %}
+    <textarea name="message" rows="3" placeholder="{% t 'lead.message_placeholder' %}"></textarea>
+  {% endif %}
+  <button class="button" type="submit">{% t "lead.submit" %}</button>
+</form>

@@ -1,0 +1,34 @@
+{% load site_extras %}
+<form class="toolbar" method="get">
+  {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+  {% if show_category_filter %}
+    <label>
+      <span>{% t "catalog.category" %}</span>
+      <select name="category" class="field">
+        <option value="">{% t "common.all" %}</option>
+        {% for category in categories %}
+          <option value="{{ category.slug }}"{% if selected_category == category.slug %} selected{% endif %}>{% tf category "name" %}</option>
+        {% endfor %}
+      </select>
+    </label>
+  {% endif %}
+  <label>
+    <span>{% t "catalog.price_from" %}</span>
+    <input class="field" type="number" name="price_from" min="0" value="{{ request.GET.price_from|default:'' }}">
+  </label>
+  <label>
+    <span>{% t "catalog.price_to" %}</span>
+    <input class="field" type="number" name="price_to" min="0" value="{{ request.GET.price_to|default:'' }}">
+  </label>
+  <label>
+    <span>{% t "catalog.sort" %}</span>
+    <select name="sort" class="field">
+      <option value="new"{% if sort == 'new' %} selected{% endif %}>{% t "catalog.sort_new" %}</option>
+      <option value="price_asc"{% if sort == 'price_asc' %} selected{% endif %}>{% t "catalog.sort_price_asc" %}</option>
+      <option value="price_desc"{% if sort == 'price_desc' %} selected{% endif %}>{% t "catalog.sort_price_desc" %}</option>
+      <option value="name"{% if sort == 'name' %} selected{% endif %}>{% t "catalog.sort_name" %}</option>
+    </select>
+  </label>
+  <button class="button small" type="submit">{% t "catalog.apply" %}</button>
+  <a class="button ghost small" href="{{ request.path }}">{% t "catalog.reset" %}</a>
+</form>

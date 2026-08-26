@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "page.works_title" %} — {{ site.brand_name }}{% endblock %}
+{% block description %}{% t "page.works_lead" %}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">{{ site.brand_name }}</p>
+    <h1>{% t "page.works_title" %}</h1>
+    <p class="lead">{% t "page.works_lead" %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="grid-3">
+      {% for work in works %}
+        {% include 'includes/work_card.html' with work=work %}
+      {% empty %}
+        <p class="muted">{% t "common.empty" %}</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section cta cta-soft">
+  <div class="wrap cta-inner">
+    <div>
+      <h2>{% t "home.consult_title" %}</h2>
+      <p class="lead">{% t "home.consult_lead" %}</p>
+    </div>
+    {% include 'includes/lead_form.html' with lead_type="consultation" with_message=True %}
+  </div>
+</section>
+{% endblock %}

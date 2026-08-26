@@ -1,0 +1,193 @@
+{% load static site_extras i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% t "brand.name" %} — {% t "brand.tagline" %}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{% t "brand.tagline" %}{% endblock %}">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('sd-theme'); } catch (e) { /* private mode */ }
+      if (saved !== 'dark' && saved !== 'light') {
+        saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="scroll-progress" data-scroll-progress></div>
+
+<!-- ============================ TOPBAR ============================ -->
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <span class="topbar-hours">🕘 {{ site.working_hours|default:"" }}{% if not site.working_hours %}{% t "topbar.worktime" %}{% endif %}</span>
+    <div class="topbar-right">
+      <form class="lang-switch" action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% get_current_language as CURRENT %}
+        {% for code, label in LANGUAGES %}
+          <button type="submit" name="language" value="{{ code }}"
+                  class="lang{% if code == CURRENT %} active{% endif %}">{{ code|upper }}</button>
+        {% endfor %}
+      </form>
+      <button type="button" class="theme-toggle" data-theme-toggle
+              aria-label="{% t 'theme.toggle' %}" title="{% t 'theme.toggle' %}">☾</button>
+      <a class="topbar-phone" href="tel:{{ site.phone_primary }}">{{ site.phone_primary }}</a>
+      <button type="button" class="button tiny" data-modal-open="callback">{% t "topbar.call_measurer" %}</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ HEADER ============================ -->
+<header class="header">
+  <div class="wrap header-inner">
+    <a class="brand" href="{% url 'pages:home' %}">
+      <span class="brand-mark">S</span>
+      <span class="brand-text">{{ site.brand_name }}<small>{% t "brand.tagline" %}</small></span>
+    </a>
+
+    <form class="search" action="{% url 'catalog:search' %}" method="get" role="search">
+      <input type="search" name="q" value="{{ request.GET.q|default:'' }}"
+             placeholder="{% t 'common.search_placeholder' %}" aria-label="{% t 'common.search' %}">
+      <button type="submit" aria-label="{% t 'common.search' %}">⌕</button>
+    </form>
+
+    <div class="header-actions">
+      {% if can_manage %}
+        <a class="header-link" href="{% url 'dashboard:overview' %}">{% t "nav.dashboard" %}</a>
+        <form class="logout-form" method="post" action="{% url 'dashboard:logout' %}">
+          {% csrf_token %}
+          <button class="header-link" type="submit">{% t "nav.logout" %}</button>
+        </form>
+      {% else %}
+        <a class="button ghost small" href="{% url 'dashboard:login' %}">{% t "nav.login" %}</a>
+      {% endif %}
+      <a class="cart-link" href="{% url 'orders:cart_detail' %}">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-meta">
+          <b>{{ cart_total|money }} {% t "common.currency" %}</b>
+          <small>{{ cart_count }} {% t "common.pcs" %}</small>
+        </span>
+      </a>
+      <button class="burger" type="button" data-menu-toggle aria-label="{% t 'nav.menu' %}">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ NAV ============================ -->
+<nav class="mainnav" data-menu>
+  <div class="wrap mainnav-inner">
+    <div class="has-mega">
+      <a href="{% url 'catalog:list' %}" class="mainnav-link">{% t "nav.catalog" %} <span class="caret">▾</span></a>
+      <div class="mega">
+        <div class="wrap mega-grid">
+          {% for category in menu_categories %}
+            <a href="{{ category.get_absolute_url }}" class="mega-item">
+              <span class="mega-icon">{{ category.icon|default:"▦" }}</span>
+              <span>{% tf category "name" %}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'pages:about' %}" class="mainnav-link">{% t "nav.about" %}</a>
+    <a href="{% url 'pages:works' %}" class="mainnav-link">{% t "nav.works" %}</a>
+    <a href="{% url 'pages:contact' %}" class="mainnav-link">{% t "nav.contact" %}</a>
+    <button type="button" class="button small nav-cta" data-modal-open="callback">{% t "topbar.callback" %}</button>
+  </div>
+</nav>
+
+{% if messages %}
+  <div class="wrap flashes">
+    {% for message in messages %}
+      <div class="flash {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<main>{% block content %}{% endblock %}</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div>
+      <div class="brand footer-brand">
+        <span class="brand-mark">S</span>
+        <span class="brand-text">{{ site.brand_name }}<small>{% t "brand.tagline" %}</small></span>
+      </div>
+      <p class="muted">{% tf site "about_short" %}</p>
+    </div>
+    <div>
+      <h4>{% t "footer.catalog" %}</h4>
+      <ul>
+        {% for category in menu_categories|slice:":8" %}
+          <li><a href="{{ category.get_absolute_url }}">{% tf category "name" %}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h4>{% t "footer.about" %}</h4>
+      <ul>
+        <li><a href="{% url 'pages:about' %}">{% t "nav.about" %}</a></li>
+        <li><a href="{% url 'pages:works' %}">{% t "nav.works" %}</a></li>
+        <li><a href="{% url 'pages:contact' %}">{% t "nav.contact" %}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>{% t "footer.contacts" %}</h4>
+      <ul>
+        <li><a href="tel:{{ site.phone_primary }}">{{ site.phone_primary }}</a></li>
+        {% if site.phone_secondary %}<li><a href="tel:{{ site.phone_secondary }}">{{ site.phone_secondary }}</a></li>{% endif %}
+        {% if site.email %}<li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>{% endif %}
+        {% if site.address %}<li class="muted">{% tf site "address" %}</li>{% endif %}
+        <li class="muted">{% tf site "working_hours" %}</li>
+      </ul>
+      <div class="socials">
+        {% for label, url in site.socials %}
+          {% if url %}<a href="{{ url }}" target="_blank" rel="noopener">{{ label }}</a>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>© {% now "Y" %} {{ site.brand_name }}. {% t "footer.rights" %}</span>
+  </div>
+</footer>
+
+<!-- ============================ MODAL ============================ -->
+<div class="modal" id="modal-callback" hidden>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal-card">
+    <button class="modal-close" type="button" data-modal-close aria-label="{% t 'common.close' %}">×</button>
+    <h3>{% t "topbar.callback" %}</h3>
+    <p class="muted">{% t "home.order_lead" %}</p>
+    {% include 'includes/lead_form.html' with form=callback_form lead_type="callback" %}
+  </div>
+</div>
+
+<!-- Har 15 soniyada chiquvchi bildirishnoma (main.js boshqaradi) -->
+<div class="modal modal-promo" id="modal-promo" hidden data-promo>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal-card">
+    <button class="modal-close" type="button" data-modal-close aria-label="{% t 'common.close' %}">×</button>
+    <h3>{% t "popup.title" %}</h3>
+    <p class="muted">{% t "popup.text" %}</p>
+    {% include 'includes/lead_form.html' with lead_type="popup" %}
+  </div>
+</div>
+
+<script src="{% static 'js/main.js' %}" defer></script>
+<script src="{% static 'js/motion.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

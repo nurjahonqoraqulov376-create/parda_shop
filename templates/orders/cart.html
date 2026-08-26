@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "cart.title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">{{ site.brand_name }}</p>
+    <h1>{% t "cart.title" %}</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {% if cart.is_empty %}
+      <div class="empty-box">
+        <p>{% t "cart.empty" %}</p>
+        <a class="button" href="{% url 'catalog:list' %}">{% t "cart.continue" %} →</a>
+      </div>
+    {% else %}
+      <div class="table-wrap">
+        <table class="table cart-table">
+          <thead>
+            <tr>
+              <th>{% t "cart.product" %}</th>
+              <th>{% t "cart.price" %}</th>
+              <th>{% t "product.quantity" %}</th>
+              <th>{% t "cart.sum" %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in cart %}
+              <tr>
+                <td class="cart-product">
+                  {% if row.product.image %}<img src="{{ row.product.image.url }}" alt="" width="1000" height="750" loading="lazy">{% endif %}
+                  <a href="{{ row.product.get_absolute_url }}">{% tf row.product "name" %}</a>
+                </td>
+                <td>{{ row.price|money }} {% t "common.currency" %}</td>
+                <td>
+                  <form class="qty-form" method="post" action="{% url 'orders:cart_update' row.product.pk %}">
+                    {% csrf_token %}
+                    <input class="field" type="number" name="quantity" min="1" value="{{ row.quantity }}">
+                    <button class="button ghost tiny" type="submit">{% t "cart.update" %}</button>
+                  </form>
+                </td>
+                <td><b>{{ row.total|money }} {% t "common.currency" %}</b></td>
+                <td>
+                  <form method="post" action="{% url 'orders:cart_remove' row.product.pk %}">
+                    {% csrf_token %}
+                    <button class="link-danger" type="submit">×</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cart-footer">
+        <a class="button ghost" href="{% url 'catalog:list' %}">← {% t "cart.continue" %}</a>
+        <div class="cart-total">
+          <span>{% t "common.total" %}:</span>
+          <b>{{ cart.total|money }} {% t "common.currency" %}</b>
+        </div>
+        <a class="button" href="{% url 'orders:checkout' %}">{% t "cart.checkout" %} →</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

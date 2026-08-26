@@ -1,0 +1,21 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "dash.settings" %}{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <form method="post" enctype="multipart/form-data" class="dash-form">
+    {% csrf_token %}
+    {% for field in form %}
+      <label class="field-row">
+        <span>{{ field.label }}</span>
+        {{ field }}
+        {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+      </label>
+    {% endfor %}
+    <div class="form-actions">
+      <button class="button" type="submit">{% t "common.save" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

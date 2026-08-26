@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% tf work "title" %} — {{ site.brand_name }}{% endblock %}
+{% block description %}{% tf work "excerpt" %}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    {% tf work "category" as work_category %}
+    <p class="eyebrow">
+      <a href="{% url 'pages:works' %}">{% t "page.works_title" %}</a>{% if work_category %} · {{ work_category }}{% endif %}
+    </p>
+    <h1>{% tf work "title" %}</h1>
+    {% tf work "excerpt" as work_excerpt %}
+    {% if work_excerpt %}<p class="lead">{{ work_excerpt }}</p>{% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap narrow">
+    {% if work.image %}
+      <img class="wide-image" src="{{ work.image.url }}" alt="{% tf work 'title' %}" width="1000" height="750">
+    {% endif %}
+    {% tf work "description" as work_description %}
+    {% if work_description %}<div class="prose">{{ work_description|linebreaks }}</div>{% endif %}
+  </div>
+</section>
+
+{% if other_works %}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">{{ site.brand_name }}</p>
+          <h2>{% t "home.works_title" %}</h2>
+        </div>
+        <a class="link-more" href="{% url 'pages:works' %}">{% t "home.view_all" %} →</a>
+      </div>
+      <div class="grid-3">
+        {% for other in other_works %}
+          {% include 'includes/work_card.html' with work=other %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<section class="section cta cta-accent">
+  <div class="wrap cta-inner">
+    <div>
+      <h2>{% t "home.order_title" %}</h2>
+      <p class="lead">{% t "home.order_lead" %}</p>
+    </div>
+    {% include 'includes/lead_form.html' with lead_type="order" %}
+  </div>
+</section>
+{% endblock %}

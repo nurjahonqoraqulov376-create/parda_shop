@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "page.contact_title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">{{ site.brand_name }}</p>
+    <h1>{% t "page.contact_title" %}</h1>
+    <p class="lead">{% t "page.contact_lead" %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap contact-grid">
+    <div>
+      <h2>{% t "page.our_contacts" %}</h2>
+      <ul class="contact-list">
+        <li><a href="tel:{{ site.phone_primary }}">{{ site.phone_primary }}</a></li>
+        {% if site.phone_secondary %}<li><a href="tel:{{ site.phone_secondary }}">{{ site.phone_secondary }}</a></li>{% endif %}
+        {% if site.email %}<li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>{% endif %}
+        {% if site.address %}<li>{% t "common.address" %}: {% tf site "address" %}</li>{% endif %}
+        <li class="muted">{% t "page.working_hours" %}: {% tf site "working_hours" %}</li>
+      </ul>
+      {% if site.map_url %}
+        <div class="contact-map">
+          <iframe src="{{ site.map_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                  title="{% t 'common.address' %}"></iframe>
+        </div>
+      {% endif %}
+      {% if site.socials %}
+        <div class="socials contact-socials">
+          {% for label, url in site.socials %}
+            {% if url %}<a class="button ghost small" href="{{ url }}" target="_blank" rel="noopener">{{ label }}</a>{% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="form-card">
+      <h2>{% t "lead.submit" %}</h2>
+      <p class="muted">{% t "home.order_lead" %}</p>
+      {% include 'includes/lead_form.html' with lead_type="contact" with_message=True %}
+    </div>
+  </div>
+</section>
+{% endblock %}

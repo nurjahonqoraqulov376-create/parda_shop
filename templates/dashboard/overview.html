@@ -1,0 +1,63 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block heading %}{% t "dash.overview" %}{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat"><span>{% t "dash.total_orders" %}</span><b>{{ orders_total }}</b></div>
+  <div class="stat"><span>Yangi buyurtmalar</span><b>{{ orders_new }}</b></div>
+  <div class="stat"><span>Tasdiqlangan</span><b>{{ orders_confirmed }}</b></div>
+  <div class="stat"><span>Yetkazilgan</span><b>{{ orders_done }}</b></div>
+  <div class="stat"><span>{% t "dash.new_leads" %}</span><b>{{ leads_new }}</b></div>
+  <div class="stat"><span>{% t "dash.total_products" %}</span><b>{{ products_total }}</b></div>
+  <div class="stat wide"><span>Tushum (yetkazilgan)</span><b>{{ revenue|money }} {% t "common.currency" %}</b></div>
+</div>
+
+<div class="dash-cols">
+  <section class="panel">
+    <h2>So‘nggi buyurtmalar</h2>
+    <table class="table">
+      <tbody>
+        {% for order in recent_orders %}
+          <tr>
+            <td><a href="{% url 'dashboard:order_detail' order.pk %}">#{{ order.pk }}</a></td>
+            <td>{{ order.full_name }}</td>
+            <td>{{ order.total_amount|money }}</td>
+            <td><span class="status status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+          </tr>
+        {% empty %}<tr><td class="muted">{% t "common.empty" %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>{% t "dash.new_leads" %}</h2>
+    <table class="table">
+      <tbody>
+        {% for lead in recent_leads %}
+          <tr>
+            <td><a href="{% url 'dashboard:lead_detail' lead.pk %}">{{ lead.name }}</a></td>
+            <td>{{ lead.phone }}</td>
+            <td>{{ lead.get_lead_type_display }}</td>
+            <td><span class="status status-{{ lead.status }}">{{ lead.get_status_display }}</span></td>
+          </tr>
+        {% empty %}<tr><td class="muted">{% t "common.empty" %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>{% t "dash.low_stock" %}</h2>
+    <table class="table">
+      <tbody>
+        {% for product in low_stock %}
+          <tr>
+            <td><a href="{% url 'dashboard:section_edit' 'mahsulotlar' product.pk %}">{{ product.name }}</a></td>
+            <td><b>{{ product.stock }}</b> {% t "common.pcs" %}</td>
+          </tr>
+        {% empty %}<tr><td class="muted">{% t "common.empty" %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}
