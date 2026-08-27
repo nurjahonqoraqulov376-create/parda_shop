@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "error.404_title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap narrow center">
+    <div class="error-box">
+      <span class="error-code">404</span>
+      <h1>{% t "error.404_title" %}</h1>
+      <p class="lead">{% t "error.404_text" %}</p>
+
+      <form class="error-search" action="{% url 'catalog:search' %}" method="get" role="search">
+        <input type="search" name="q" class="field"
+               placeholder="{% t 'common.search_placeholder' %}"
+               aria-label="{% t 'common.search' %}">
+        <button class="button" type="submit">{% t "common.search" %}</button>
+      </form>
+
+      <div class="error-actions">
+        <a class="button ghost" href="{% url 'pages:home' %}">{% t "common.home" %}</a>
+        <a class="button ghost" href="{% url 'catalog:list' %}">{% t "nav.catalog" %}</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

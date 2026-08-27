@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% block title %}{% t "error.403_title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap narrow center">
+    <div class="error-box">
+      <span class="error-code">403</span>
+      <h1>{% t "error.403_title" %}</h1>
+      <p class="lead">{% t "error.403_text" %}</p>
+
+      {% if user.is_authenticated %}
+        <p class="muted error-who">
+          {% t "error.logged_in_as" %}: <b>{{ user.get_username }}</b>
+          {% if user.profile.role %} · {% t "error.your_role" %}: {{ user.profile.get_role_display }}{% endif %}
+        </p>
+      {% endif %}
+
+      <div class="error-actions">
+        {# Har bir rolni o'zi kira oladigan sahifaga yuboramiz. #}
+        {% if can_manage %}
+          <a class="button" href="{% url 'dashboard:overview' %}">{% t "nav.dashboard" %} →</a>
+        {% elif is_support %}
+          <a class="button" href="{% url 'dashboard:chat_list' %}">{% t "dash.chats" %} →</a>
+        {% endif %}
+        <a class="button ghost" href="{% url 'pages:home' %}">{% t "common.home" %}</a>
+
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'dashboard:logout' %}" class="inline-form">
+            {% csrf_token %}
+            <button class="link-more" type="submit">{% t "error.switch_account" %} →</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

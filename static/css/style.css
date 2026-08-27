@@ -1262,3 +1262,41 @@ a, button, summary, label, [role="button"], .dot, .thumb {
   .sc-send, .sc-close { min-width: 40px; min-height: 40px; }
   .sc-fab:hover, .sc-close:hover, .sc-send:hover { transform: none; }
 }
+
+/* ==========================================================================
+   17. Xato sahifalari (403 / 404)
+   ========================================================================== */
+.error-box {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 24px;
+}
+.error-code {
+  font: 700 clamp(56px, 12vw, 88px)/1 'Playfair Display', Georgia, serif;
+  letter-spacing: -3px; color: var(--accent); margin-bottom: 10px;
+}
+.error-box h1 { margin-bottom: 10px; }
+.error-box .lead { margin-bottom: 20px; }
+
+.error-who {
+  padding: 10px 16px; border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--surface-2); font-size: 13px; margin-bottom: 22px;
+}
+
+.error-actions {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;
+}
+.error-actions .inline-form { display: inline; }
+.error-actions .link-more { border: 0; background: none; cursor: pointer; font: inherit; }
+
+.error-search {
+  display: flex; gap: 10px; width: min(420px, 100%); margin-bottom: 22px;
+}
+.error-search .field { flex: 1; }
+
+@media (max-width: 560px) {
+  .error-box { padding: 30px 0; }
+  .error-actions { flex-direction: column; width: 100%; }
+  .error-actions .button, .error-actions .inline-form { width: 100%; }
+  .error-actions .button { justify-content: center; }
+  .error-search { flex-direction: column; }
+}

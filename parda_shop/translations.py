@@ -157,6 +157,19 @@ UI = {
         'support.rate_limited': 'Juda ko‘p xabar yuborildi. Bir ozdan keyin urinib ko‘ring.',
         'support.failed': 'Xabar yuborilmadi. Internetni tekshiring.',
 
+        # --- xato sahifalari ---
+        'error.403_title': 'Bu bo‘limga ruxsat yo‘q',
+        'error.403_text': 'Sizning hisobingiz bu sahifani ochish huquqiga ega emas. '
+                          'Kerak bo‘lsa administratordan ruxsat so‘rang yoki boshqa hisob bilan kiring.',
+        'error.404_title': 'Sahifa topilmadi',
+        'error.404_text': 'Bunday manzil yo‘q yoki sahifa ko‘chirilgan. '
+                          'Katalogdan qidirib ko‘ring.',
+        'error.500_title': 'Saytda nosozlik',
+        'error.500_text': 'Kutilmagan xatolik yuz berdi. Biroz kutib qayta urinib ko‘ring.',
+        'error.logged_in_as': 'Siz kirgansiz',
+        'error.switch_account': 'Boshqa hisob bilan kirish',
+        'error.your_role': 'Rolingiz',
+
         # --- interfeys ---
         'theme.toggle': 'Yorug‘ / tungi rejim',
 
@@ -373,6 +386,19 @@ UI = {
         'support.too_long': 'Сообщение слишком длинное.',
         'support.rate_limited': 'Слишком много сообщений. Попробуйте позже.',
         'support.failed': 'Сообщение не отправлено. Проверьте интернет.',
+
+        # --- страницы ошибок ---
+        'error.403_title': 'Нет доступа к этому разделу',
+        'error.403_text': 'У вашей учётной записи нет прав на эту страницу. '
+                          'Попросите доступ у администратора или войдите под другой учётной записью.',
+        'error.404_title': 'Страница не найдена',
+        'error.404_text': 'Такого адреса нет или страница перемещена. '
+                          'Попробуйте найти в каталоге.',
+        'error.500_title': 'Ошибка на сайте',
+        'error.500_text': 'Произошла непредвиденная ошибка. Подождите и попробуйте снова.',
+        'error.logged_in_as': 'Вы вошли как',
+        'error.switch_account': 'Войти под другой учётной записью',
+        'error.your_role': 'Ваша роль',
 
         # --- интерфейс ---
         'theme.toggle': 'Светлая / тёмная тема',
