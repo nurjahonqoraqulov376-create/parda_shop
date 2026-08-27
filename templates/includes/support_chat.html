@@ -3,41 +3,63 @@
 <div class="sc" data-support
      data-url-send="{% url 'support:send' %}"
      data-url-history="{% url 'support:history' %}"
-     data-text-failed="{% t 'support.failed' %}">
+     data-text-failed="{% t 'support.failed' %}"
+     data-text-waiting="{% t 'support.waiting' %}"
+     data-text-connected="{% t 'support.connected' %}">
 
   <button type="button" class="sc-fab" data-support-toggle
           aria-expanded="false" aria-controls="support-panel"
           aria-label="{% t 'support.open' %}">
-    <span class="sc-fab-icon" aria-hidden="true">💬</span>
+    <span class="sc-fab-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.9L3 21l1.9-5.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/>
+      </svg>
+    </span>
     <span class="sc-fab-text">{% t "support.open" %}</span>
   </button>
 
   <section class="sc-panel" id="support-panel" hidden aria-label="{% t 'support.title' %}">
     <header class="sc-head">
-      <div>
+      <span class="sc-avatar" aria-hidden="true">
+        {{ site.brand_name|slice:":1"|default:"S" }}
+        <i class="sc-dot"></i>
+      </span>
+      <span class="sc-head-text">
         <b>{% t "support.title" %}</b>
         <small data-support-status>{% t "support.subtitle" %}</small>
-      </div>
+      </span>
       <button type="button" class="sc-close" data-support-toggle
-              aria-label="{% t 'common.close' %}">×</button>
+              aria-label="{% t 'common.close' %}">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
     </header>
 
     <div class="sc-log" data-support-log role="log" aria-live="polite">
-      <div class="sc-msg sc-ai">
-        <p>{% t "support.greeting" %}</p>
+      <div class="sc-row sc-ai">
+        <div class="sc-bubble">{% t "support.greeting" %}</div>
       </div>
     </div>
 
     <form class="sc-form" data-support-form>
       {% csrf_token %}
-      <textarea class="sc-input" name="text" rows="1" maxlength="1000" required
-                data-support-input
-                placeholder="{% t 'support.placeholder' %}"
-                aria-label="{% t 'support.placeholder' %}"
-                enterkeyhint="send"></textarea>
-      <button class="sc-send" type="submit" aria-label="{% t 'support.send' %}">↑</button>
+      <div class="sc-field">
+        <textarea class="sc-input" name="text" rows="1" maxlength="1000" required
+                  data-support-input
+                  placeholder="{% t 'support.placeholder' %}"
+                  aria-label="{% t 'support.placeholder' %}"
+                  enterkeyhint="send"></textarea>
+        <button class="sc-send" type="submit" aria-label="{% t 'support.send' %}">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
+      </div>
+      <p class="sc-note">{% t "support.ai_note" %}</p>
     </form>
-
-    <p class="sc-note">{% t "support.ai_note" %}</p>
   </section>
 </div>

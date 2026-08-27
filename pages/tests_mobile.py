@@ -161,3 +161,44 @@ class MobileScriptTests(TestCase):
 
     def test_menyu_holati_elon_qilinadi(self):
         self.assertIn('aria-expanded', self.js)
+
+
+class SupportWidgetTests(TestCase):
+    """Suhbat oynasining dizayni va xatti-harakati."""
+
+    def setUp(self):
+        self.js = read(MAIN_JS.parent / 'support.js')
+        self.css = read(STYLE_CSS)
+
+    def test_xabar_ikki_marta_chiqmaydi(self):
+        """Optimistik pufakcha serverdan javob kelgach olib tashlanishi shart.
+
+        Ilgari xabar id'siz qo'shilardi, keyin server uni id bilan qaytarardi va
+        `addMessage` faqat id bo'yicha tekshirgani uchun xabar ikki marta
+        ko'rinardi.
+        """
+        self.assertIn('function dropPending', self.js)
+        self.assertIn('dropPending()', self.js)
+        self.assertIn("dataset.pending", self.js)
+        self.assertIn('[data-pending]', self.css)
+
+    def test_matn_html_sifatida_talqin_qilinmaydi(self):
+        """XSS: mijoz yozgan matn `textContent` orqali qo'yiladi."""
+        self.assertIn('bubble.textContent', self.js)
+        self.assertNotIn('innerHTML = message', self.js)
+
+    def test_yozmoqda_koresatkichi_bor(self):
+        self.assertIn('function showTyping', self.js)
+        self.assertIn('.sc-typing', self.css)
+
+    def test_yuborish_tugmasi_bosh_matnda_ochiq_emas(self):
+        self.assertIn('function syncSendButton', self.js)
+        self.assertIn('.sc-send:disabled', self.css)
+
+    def test_telefonda_toliq_ekran_va_16px(self):
+        self.assertIn('100dvh', self.css)
+        coarse = self.css.rsplit('@media (pointer: coarse)', 1)[1]
+        self.assertIn('.sc-input { font-size: 16px; }', coarse)
+
+    def test_ingichka_aylantirgich(self):
+        self.assertIn('.sc-log::-webkit-scrollbar', self.css)
