@@ -12,10 +12,19 @@ class OrderForm(forms.ModelForm):
         model = Order
         fields = ('full_name', 'phone', 'region', 'address', 'comment')
         widgets = {
-            'full_name': forms.TextInput(attrs={'placeholder': 'Ism-familiyangiz'}),
-            'phone': forms.TextInput(attrs={'placeholder': '+998 90 123 45 67'}),
+            # Telefonda mos klaviatura ochilishi va avtoto'ldirish ishlashi uchun.
+            'full_name': forms.TextInput(attrs={
+                'placeholder': 'Ism-familiyangiz', 'autocomplete': 'name',
+            }),
+            'phone': forms.TextInput(attrs={
+                'placeholder': '+998 90 123 45 67', 'type': 'tel',
+                'inputmode': 'tel', 'autocomplete': 'tel',
+            }),
             'region': forms.Select(),
-            'address': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ko‘cha, uy, xonadon'}),
+            'address': forms.Textarea(attrs={
+                'rows': 3, 'placeholder': 'Ko‘cha, uy, xonadon',
+                'autocomplete': 'street-address',
+            }),
             'comment': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Qo‘shimcha izoh (ixtiyoriy)'}),
         }
 

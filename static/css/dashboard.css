@@ -161,3 +161,42 @@ input[type=checkbox] { width: auto; }
   .dash-main { padding: 18px 16px 40px; }
   .stat.wide { grid-column: span 1; }
 }
+
+/* ==========================================================================
+   Telefon uchun moslashuv (pardalarni telefondan qo'shish uchun)
+   ========================================================================== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body.dash { overflow-x: clip; }
+
+a, button, label, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+@media (pointer: coarse) {
+  /* iOS maydon shrifti 16px dan kichik bo'lsa sahifani kattalashtirib
+     yuboradi — forma to'ldirish azobga aylanardi. */
+  .field, input[type=text], input[type=email], input[type=password],
+  input[type=tel], input[type=number], input[type=search], textarea, select {
+    font-size: 16px; min-height: 44px;
+  }
+  .button, .dash-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+  .dash-nav a { display: flex; }
+  .pagination a, .pagination span { min-width: 44px; height: 44px; }
+}
+
+@media (max-width: 820px) {
+  /* Yon menyu bir ustunga tushib, sahifaning yarmini egallardi. */
+  .dash-nav { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .dash-nav-title { grid-column: 1 / -1; }
+  .dash-side-foot { grid-column: 1 / -1; }
+}
+
+@media (max-width: 560px) {
+  .dash-nav { grid-template-columns: 1fr 1fr; }
+  .dash-main { padding: 16px 12px 36px; }
+  /* Keng jadvallar yon tomonga surilsin, sahifani cho'zib yubormasin. */
+  .table-wrap, .dash-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .form-actions { flex-direction: column; }
+  .form-actions .button { width: 100%; }
+  @supports (padding: max(0px)) {
+    .dash-main { padding-bottom: max(36px, env(safe-area-inset-bottom)); }
+  }
+}

@@ -36,19 +36,21 @@
                   {% if row.product.image %}<img src="{{ row.product.image.url }}" alt="" width="1000" height="750" loading="lazy">{% endif %}
                   <a href="{{ row.product.get_absolute_url }}">{% tf row.product "name" %}</a>
                 </td>
-                <td>{{ row.price|money }} {% t "common.currency" %}</td>
-                <td>
+                <td data-label="{% t 'cart.price' %}">{{ row.price|money }} {% t "common.currency" %}</td>
+                <td data-label="{% t 'product.quantity' %}">
                   <form class="qty-form" method="post" action="{% url 'orders:cart_update' row.product.pk %}">
                     {% csrf_token %}
-                    <input class="field" type="number" name="quantity" min="1" value="{{ row.quantity }}">
+                    <input class="field" type="number" name="quantity" min="1" max="{{ row.product.stock }}"
+                           inputmode="numeric" value="{{ row.quantity }}"
+                           aria-label="{% t 'product.quantity' %}">
                     <button class="button ghost tiny" type="submit">{% t "cart.update" %}</button>
                   </form>
                 </td>
-                <td><b>{{ row.total|money }} {% t "common.currency" %}</b></td>
+                <td data-label="{% t 'cart.sum' %}"><b>{{ row.total|money }} {% t "common.currency" %}</b></td>
                 <td>
                   <form method="post" action="{% url 'orders:cart_remove' row.product.pk %}">
                     {% csrf_token %}
-                    <button class="link-danger" type="submit">×</button>
+                    <button class="link-danger" type="submit" aria-label="{% t 'cart.remove' %}">×</button>
                   </form>
                 </td>
               </tr>

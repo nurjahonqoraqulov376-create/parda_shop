@@ -68,7 +68,8 @@
         {% if product.in_stock %}
           <label class="qty">
             <span>{% t "product.quantity" %}</span>
-            <input class="field" type="number" name="quantity" min="1" max="{{ product.stock }}" value="1">
+            <input class="field" type="number" name="quantity" min="1" max="{{ product.stock }}"
+                   inputmode="numeric" value="1">
           </label>
           <button class="button" type="submit">{% t "product.add_to_cart" %}</button>
         {% else %}

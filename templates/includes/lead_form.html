@@ -4,11 +4,11 @@
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
   <input type="hidden" name="lead_type" value="{{ lead_type|default:'callback' }}">
   <label>
-    <input type="text" name="name" required maxlength="120" placeholder="{% t 'lead.name_placeholder' %}" aria-required="true">
+    <input type="text" name="name" required maxlength="120" autocomplete="name" placeholder="{% t 'lead.name_placeholder' %}" aria-required="true">
     <span style="position:absolute;color:#cf8248;margin-left:2px">*</span>
   </label>
   <label>
-    <input type="tel" name="phone" required maxlength="30" placeholder="{% t 'lead.phone_placeholder' %}" aria-required="true">
+    <input type="tel" name="phone" required maxlength="30" inputmode="tel" autocomplete="tel" placeholder="{% t 'lead.phone_placeholder' %}" aria-required="true">
     <span style="position:absolute;color:#cf8248;margin-left:2px">*</span>
   </label>
   {% if with_message %}

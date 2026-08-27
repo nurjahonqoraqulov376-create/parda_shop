@@ -924,3 +924,157 @@ html[data-motion="off"] .reveal { opacity: 1; transform: none; }
   .header-actions .button.small { padding: 8px 9px; font-size: 10px; }
   .lang { padding: 3px 5px; }
 }
+
+/* ==========================================================================
+   15. Telefon (Android / iPhone) uchun moslashuv
+   ========================================================================== */
+
+/* --- Asosiy tuzatishlar ------------------------------------------------- */
+html {
+  /* iOS gorizontal holatga o'tganda matnni o'zicha kattalashtirib yuborardi. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  /* Bitta uzun so'z yoki keng blok sahifani yon tomonga surib yuborardi.
+     `clip` — `hidden` dan farqli o'laroq, sarlavhaning `position: sticky`
+     ishlashini buzmaydi. */
+  overflow-x: clip;
+}
+
+/* Uzun so'zlar (havolalar, artikullar) tor ekranda chetdan chiqib ketmasin. */
+p, li, h1, h2, h3, h4, .card-text, .prose, .lead, td { overflow-wrap: break-word; }
+
+/* Bosilganda chiqadigan kulrang "chaqnash" o'rniga o'z uslubimiz ishlaydi;
+   `manipulation` esa ikki marta bosganda sahifa kattalashishini va eski
+   brauzerlardagi 300 ms kechikishni yo'q qiladi. */
+a, button, summary, label, [role="button"], .dot, .thumb {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* --- iPhone «notch» va pastki chiziq (safe area) ------------------------ */
+@supports (padding: max(0px)) {
+  .wrap, .wrap.narrow {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  .footer { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .modal-card, .modal-promo .modal-card { margin-bottom: env(safe-area-inset-bottom); }
+}
+
+/* --- Sensorli ekran: bosish maydonlari va maydonlar --------------------- */
+@media (pointer: coarse) {
+  /* iOS Safari maydonning shrifti 16px dan kichik bo'lsa, unga bosilganda
+     sahifani avtomatik kattalashtiradi va foydalanuvchi uni barmoq bilan
+     qaytarishga majbur bo'lardi. 16px — bu xatti-harakatni to'xtatadi. */
+  .field, input[type=text], input[type=email], input[type=password], input[type=tel],
+  input[type=number], input[type=search], input[type=url], textarea, select {
+    font-size: 16px;
+  }
+
+  /* Barmoq uchun qulay balandlik. */
+  .button, .field, input[type=text], input[type=email], input[type=password],
+  input[type=tel], input[type=number], input[type=search], input[type=url], select {
+    min-height: 44px;
+  }
+  .button { display: inline-flex; align-items: center; justify-content: center; }
+
+  /* Kichkina belgilar (×, ☾, UZ/RU) — bosish maydoni kattalashtiriladi. */
+  .modal-close, .link-danger, .theme-toggle, .lang, .lightbox-close,
+  .lightbox-prev, .lightbox-next {
+    min-width: 40px; min-height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* Slayder nuqtalari ko'rinishda kichik qolsin, lekin bosish maydoni katta. */
+  .dot { position: relative; }
+  .dot::after { content: ''; position: absolute; inset: -13px; }
+
+  /* Sensorli ekranda "hover" yo'q — bosilganda siljish/aylanish effektlari
+     barmoq ko'tarilgach ham qotib qolardi. */
+  .cart-link:hover, .card:hover, .cat-tile:hover, .thumb:hover,
+  .link-danger:hover, .theme-toggle:hover, .modal-close:hover {
+    transform: none;
+  }
+}
+
+/* --- Mobil menyu: kategoriyalar ro'yxati bosish bilan ochiladi ----------- */
+@media (max-width: 900px) {
+  .mainnav-inner { padding-top: 4px; padding-bottom: 10px; gap: 2px; }
+  .mainnav-link { padding: 13px 2px; }
+
+  .has-mega > .mainnav-link {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  /* Katta bosish maydoni: strelkaning o'zi menyuni ochadi, matn esa
+     katalogga o'tkazadi. */
+  .has-mega .caret {
+    padding: 10px 12px; margin: -10px -10px -10px 0;
+    transition: transform var(--dur) var(--ease);
+  }
+  .has-mega.is-open .caret { transform: rotate(180deg); }
+
+  /* Sensorli ekranda `:hover` ishonchsiz — «Katalog» ustiga bosilganda
+     ro'yxat ochilmasdan sahifa almashib ketardi. Endi `.is-open` boshqaradi. */
+  .has-mega:hover .mega, .has-mega:focus-within .mega { display: none; }
+  .has-mega.is-open .mega { display: block; }
+  .mega-item { padding: 12px 2px; }
+
+  .nav-cta { margin-top: 10px; width: 100%; }
+}
+
+/* --- Modal: telefonda pastdan chiqadigan varaq ko'rinishida -------------- */
+@media (max-width: 560px) {
+  .modal { align-items: end; }
+  .modal-card, .modal-promo .modal-card {
+    width: 100%; max-width: none;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    /* Klaviatura ochilganda ham forma ko'rinib tursin. */
+    max-height: 88dvh; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-close { top: 8px; right: 8px; }
+}
+
+/* --- Savat: telefonda jadval o'rniga kartochkalar ------------------------
+   Besh ustunli jadval 360px ekranda siqilib, narx va miqdor o'qib
+   bo'lmaydigan holga kelardi. Har bir mahsulot alohida kartochkaga
+   aylanadi, ustun nomlari `data-label` dan olinadi. */
+@media (max-width: 560px) {
+  .cart-table thead { display: none; }
+  .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: block; width: 100%; }
+  .cart-table tr {
+    position: relative;
+    border: 1px solid var(--line); border-radius: var(--r-lg);
+    padding: 12px 44px 12px 12px; margin-bottom: 12px;
+    background: var(--surface);
+  }
+  .cart-table td { border: 0; padding: 5px 0; }
+  .cart-table td[data-label]::before {
+    content: attr(data-label) ': ';
+    color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px;
+  }
+  .cart-table td.cart-product { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; }
+  .cart-table td.cart-product::before { content: none; }
+  .cart-product img { width: 52px; height: 52px; border-radius: var(--r-sm); }
+  .cart-table .qty-form { display: flex; align-items: center; gap: 8px; }
+  .cart-table .qty-form input { width: 72px; }
+  /* O'chirish tugmasi kartochkaning o'ng yuqori burchagida. */
+  .cart-table td:last-child { position: absolute; top: 8px; right: 6px; width: auto; padding: 0; }
+  .cart-table td:last-child::before { content: none; }
+
+  .cart-footer { gap: 14px; }
+  .cart-footer .button { width: 100%; }
+  .cart-total { display: flex; justify-content: space-between; align-items: baseline; }
+}
+
+/* --- Juda tor ekranlar (360px va undan kichik) --------------------------- */
+@media (max-width: 380px) {
+  .wrap, .wrap.narrow { width: calc(100% - 20px); }
+  .rail { grid-auto-columns: minmax(210px, 1fr); gap: 12px; }
+  .card-body .button { font-size: 11px; padding: 11px 6px; }
+  .stats-grid { gap: 20px; }
+  .toolbar { grid-template-columns: 1fr; }
+}
