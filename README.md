@@ -19,6 +19,11 @@ py manage.py runserver
 
 Sayt: `http://127.0.0.1:8000/uz/` (yoki `/ru/`). Boshqaruv paneli: `/uz/boshqaruv/`.
 
+`.env` da to‘ldirish kerak bo‘lgan yagona narsa — suhbat yordamchisining kaliti
+(`GEMINI_API_KEY`, [aistudio.google.com/apikey](https://aistudio.google.com/apikey),
+bepul). Qolgani ishlaydigan qiymatlar bilan keladi. **Kalit bo‘sh bo‘lsa ham sayt
+to‘liq ishlaydi** — shunchaki suhbatda AI o‘rniga darhol operator chaqiriladi.
+
 ### Probniy havola (boshqalarga ko'rsatish uchun)
 
 Saytni internetga vaqtincha ochib, havolasini boshqalarga yuborish uchun
@@ -197,14 +202,18 @@ Kirish huquqi **xodim profili** (`accounts.Profile`) orqali beriladi. Profil yar
 bilan signal foydalanuvchini mos Django guruhiga qo‘shadi va `is_staff` ni yoqadi; profil
 o‘chirilsa, huquq ham qaytarib olinadi (`accounts/signals.py`).
 
-| Bo‘lim | Menejer | Administrator |
-|---|---|---|
-| Umumiy statistika, buyurtmalar, so‘rovlar | ✓ | ✓ |
-| Suhbatlar (chat) — ko‘rish va javob berish | ✓ | ✓ |
-| Mahsulot, kategoriya, ish (portfolio) qo‘shish/tahrirlash | ✓ | ✓ |
-| Yozuvni o‘chirish | — | ✓ |
-| Banner, afzallik, mijozlar fikri, hamkor, kontent bloklari | — | ✓ |
-| Xodimlar (qo‘shish, rol, o‘chirish) va sayt sozlamalari | — | ✓ |
+| Bo‘lim | Support | Menejer | Administrator |
+|---|---|---|---|
+| Suhbatlar (chat) — ko‘rish va javob berish | ✓ | ✓ | ✓ |
+| Umumiy statistika, buyurtmalar, so‘rovlar | — | ✓ | ✓ |
+| Mahsulot, kategoriya, ish (portfolio) qo‘shish/tahrirlash | — | ✓ | ✓ |
+| Yozuvni o‘chirish | — | — | ✓ |
+| Banner, afzallik, mijozlar fikri, hamkor, kontent bloklari | — | — | ✓ |
+| Xodimlar (qo‘shish, rol, o‘chirish) va sayt sozlamalari | — | — | ✓ |
+
+**Support** eng tor rol: mijoz bilan yozishadi, xolos. Buyurtma, mijoz telefoni,
+mahsulot va sozlamalarga urinsa 403 oladi. Kirgandan keyin to‘g‘ridan-to‘g‘ri
+suhbatlar sahifasiga tushadi.
 
 Superuser doim `admin` huquqiga ega. Yangi xodim `/uz/boshqaruv/foydalanuvchilar/yangi/`
 sahifasidan qo‘shiladi — login, parol va rol o‘sha yerda beriladi. Guruh ruxsatlarini qayta
@@ -273,20 +282,100 @@ Buyruq idempotent: qayta ishga tushirilsa yozuvlarni yangilaydi va eskirgan demo
 mahsulotlarni tozalaydi (buyurtmada ishlatilgani o‘chirilmay, nofaol qilinadi).
 Sizning qo‘lda qo‘shgan kategoriya va mahsulotlaringizga tegilmaydi.
 
+## Xavfsizlik
+
+### Git'ga hech qachon tushmaydigan narsalar
+
+`.gitignore` quyidagilarni yopadi — **ularni commit qilmang**:
+
+| Fayl | Nega |
+|---|---|
+| `.env` | `SECRET_KEY`, Gemini kaliti, SMTP paroli |
+| `db.sqlite3` va nusxalari | mijoz buyurtmalari, telefon raqamlari, suhbat yozishmalari |
+| `media/` | yuklangan rasmlar (13 MB+) |
+| `cookies.txt` | sessiya cookie'lari |
+| `tools/`, `*.exe` | binar yordamchilar |
+
+Kod ichida hech qanday sir yo‘q: hamma narsa `env('...')` orqali muhitdan olinadi.
+Yangi serverda `.env` ni qo‘lda yaratasiz.
+
+Commit qilishdan oldin tekshirish:
+
+```bash
+git status --short           # .env yoki db.sqlite3 ro'yxatda bo'lmasin
+git diff --cached --name-only | grep -E '\.env$|sqlite3|cookies'   # hech narsa chiqmasin
+```
+
+### Ishlab chiqarish rejimidagi himoya
+
+`DEBUG=False` bo‘lganda avtomatik yoqiladi: `SESSION_COOKIE_SECURE`,
+`CSRF_COOKIE_SECURE`, `X_FRAME_OPTIONS=DENY`, `SECURE_CONTENT_TYPE_NOSNIFF`,
+`SECURE_REFERRER_POLICY`. HTTPS majburlash va HSTS **ataylab o‘chiq** — cloudflare
+tunneli orqasida ular havolani ishdan chiqaradi. Haqiqiy domenga o‘tganda `.env` ga:
+
+```
+SECURE_SSL_REDIRECT=True
+SECURE_HSTS_SECONDS=31536000
+```
+
+### Boshqa muhim joylar
+
+- **Buyurtma sahifasi** (`/buyurtma/<id>/rahmat/`) faqat egasiga ochiq — raqamni
+  almashtirib begona mijozning ma’lumotini ko‘rib bo‘lmaydi.
+- **Ombor** buyurtma vaqtida tranzaksiya ichida tekshiriladi va `F()` bilan ayiriladi.
+- **Savat** buzilgan sessiyada ham yiqilmaydi — yaroqsiz qatorlar tashlanadi.
+- **Xodim parollari** uchun Django validatorlari yoqilgan (kamida 8 belgi).
+- **Suhbat** matni Gemini'ga yuborilishidan oldin telefon raqamlari niqoblanadi.
+
+## Testlar
+
+```bash
+py manage.py test              # 115 ta test
+py manage.py test support      # faqat suhbat tizimi
+py manage.py check --deploy    # xavfsizlik sozlamalari
+```
+
+Har bir test bir marta topilgan aniq xatoni qo‘riqlaydi — nomlari o‘zbekcha va
+nima tekshirilayotgani yozilgan. Testlar **hech qachon tarmoqqa chiqmaydi**:
+`AUTO_TRANSLATE` va `AI_SUPPORT` o‘chiriladi, Gemini javobi soxtalashtiriladi.
+Shuning uchun `.env` da haqiqiy kalit tursa ham testlar tez va bepul.
+
+Qamrov: savat va buyurtma oqimi, ombor, ruxsatlar, eskalatsiya, AI qatlami,
+tarjima lug‘ati, mobil moslashuv, panel bo‘limlari.
+
+`.github/workflows/tests.yml` — har `git push` da GitHub o‘zi `check`,
+`makemigrations --check` va barcha testlarni ishga tushiradi.
+
 ## Loyiha tuzilishi
 
 ```
 accounts/    Profile (rol), login formasi, rol guruhlari, ruxsat dekoratorlari
 catalog/     Category, Product, ProductImage + katalog/qidiruv view'lari
 orders/      sessiyadagi Cart, Order/OrderItem, Lead (ariza formalari)
-pages/       SiteSettings, Banner, Advantage, FaqItem, Service, Article, ContentBlock
-support/     Conversation, Message — suhbat, AI javoblari, eskalatsiya
-dashboard/   /boshqaruv/ paneli (registry asosidagi generic CRUD + buyurtma/lead/xodim)
+pages/       SiteSettings, Banner, Advantage, Testimonial, Client, Work, ContentBlock
+support/     Conversation, Message + ai.py (Gemini), escalation.py, notifications.py
+dashboard/   /boshqaruv/ paneli (registry asosidagi generic CRUD + buyurtma/lead/xodim/chat)
 templates/   base.html, includes/, pages/, catalog/, orders/, dashboard/
-static/      css/style.css (sayt), css/dashboard.css (panel va login), js/main.js
+static/      css/style.css (sayt), css/dashboard.css (panel), js/main.js, js/support.js
 ```
 
 ## Production
 
-`DEBUG=False`, kuchli `SECRET_KEY`, to‘g‘ri `ALLOWED_HOSTS`, HTTPS, alohida PostgreSQL
-bazasi va `py manage.py collectstatic` ni sozlang.
+Serverga qo‘yishdan oldin:
+
+1. `.env` ni **qo‘lda yarating** (git'da yo‘q) va to‘ldiring:
+   `DEBUG=False`, kuchli `SECRET_KEY`, haqiqiy `ALLOWED_HOSTS` va
+   `CSRF_TRUSTED_ORIGINS`, `GEMINI_API_KEY`, `EMAIL_*`, `SITE_BASE_URL`.
+2. `py manage.py migrate` — bo‘sh bazada ham ishlaydi (migratsiya tartibi
+   `run_before` bilan majburlangan).
+3. `py manage.py setup_roles` — Support / Menejer / Administrator guruhlari.
+4. `py manage.py createsuperuser` — birinchi administrator.
+5. `py manage.py collectstatic`.
+6. `py manage.py check --deploy` — ogohlantirishlarni ko‘rib chiqing.
+
+Statik va media fayllarni nginx bersin (`SERVE_MEDIA=False`), bazani SQLite'dan
+PostgreSQL'ga ko‘chiring, HTTPS uchun `SECURE_SSL_REDIRECT=True` va
+`SECURE_HSTS_SECONDS=31536000` qo‘shing.
+
+> Suhbat yozishmalari bazada saqlanadi va mijoz telefon raqamini yozgan bo‘lishi
+> mumkin — baza nusxalarini himoyalangan joyda saqlang.
