@@ -16,6 +16,9 @@ jobs:
       ALLOWED_HOSTS: "127.0.0.1,localhost,testserver"
       # Testlar tarmoqqa chiqmasin.
       AUTO_TRANSLATE: "False"
+      # Suhbat yordamchisi ham tarmoqqa chiqmasin.
+      AI_SUPPORT: "False"
+      GEMINI_API_KEY: ""
 
     steps:
       - uses: actions/checkout@v4

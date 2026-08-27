@@ -1,0 +1,53 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block title %}{% t "dash.chats" %} #{{ conversation.pk }}{% endblock %}
+{% block heading %}{% t "dash.chats" %} #{{ conversation.pk }}{% endblock %}
+
+{% block actions %}
+  <a class="button ghost small" href="{% url 'dashboard:chat_list' %}">← {% t "common.back" %}</a>
+  {% if conversation.status != 'closed' %}
+    <form method="post" action="{% url 'dashboard:chat_close' conversation.pk %}" class="inline-form">
+      {% csrf_token %}
+      <button class="button ghost small" type="submit">{% t "dash.chat_close" %}</button>
+    </form>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <p class="muted">
+    {{ conversation.get_status_display }} ·
+    {{ conversation.language|upper }} ·
+    {{ conversation.created_at|date:"d.m.Y H:i" }}
+    {% if conversation.operator %} · {{ conversation.operator.get_username }}{% endif %}
+  </p>
+
+  <div class="chat-log">
+    {% for message in messages_list %}
+      <div class="chat-row chat-{{ message.sender }}">
+        <div class="chat-bubble">
+          <span class="chat-who">
+            {{ message.get_sender_display }}{% if message.author %} · {{ message.author.get_username }}{% endif %}
+          </span>
+          <p>{{ message.text|linebreaksbr }}</p>
+          <time>{{ message.created_at|date:"d.m.Y H:i" }}</time>
+        </div>
+      </div>
+    {% empty %}
+      <p class="muted">{% t "dash.chat_empty" %}</p>
+    {% endfor %}
+  </div>
+
+  {% if conversation.status != 'closed' %}
+    <form method="post" class="chat-reply">
+      {% csrf_token %}
+      <textarea class="field" name="text" rows="3" required
+                placeholder="{% t 'dash.chat_reply' %}..."></textarea>
+      <button class="button" type="submit">{% t "common.send" %}</button>
+    </form>
+    <p class="hint">
+      Javob yozganingizdan keyin sun’iy intellekt bu suhbatga aralashmaydi.
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

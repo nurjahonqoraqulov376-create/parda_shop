@@ -14,16 +14,23 @@ MANAGER_MODELS = [
 MANAGER_ACTIONS = ('view', 'add', 'change')
 
 # Administrator to'liq boshqaradigan app'lar
-ADMIN_APPS = ('catalog', 'orders', 'pages', 'accounts')
+ADMIN_APPS = ('catalog', 'orders', 'pages', 'accounts', 'support')
 
 GROUP_MANAGER = 'Menejer'
 GROUP_ADMIN = 'Administrator'
+GROUP_SUPPORT = 'Support'
+
+# Support xodimi faqat suhbatlarni ko'radi va javob yozadi — buyurtma,
+# mijoz telefonlari va mahsulotlarga ruxsati yo'q.
+SUPPORT_MODELS = [('support', 'conversation'), ('support', 'message')]
+SUPPORT_ACTIONS = ('view', 'add', 'change')
 
 
 def ensure_roles():
     """Guruhlarni yaratadi va ruxsatlarni yangilaydi (idempotent)."""
     manager, _ = Group.objects.get_or_create(name=GROUP_MANAGER)
     admin_group, _ = Group.objects.get_or_create(name=GROUP_ADMIN)
+    support_group, _ = Group.objects.get_or_create(name=GROUP_SUPPORT)
 
     manager_codenames = [
         f'{action}_{model}' for app, model in MANAGER_MODELS for action in MANAGER_ACTIONS
@@ -39,4 +46,14 @@ def ensure_roles():
     if admin_perms.exists():
         admin_group.permissions.set(admin_perms)
 
-    return manager, admin_group
+    support_codenames = [
+        f'{action}_{model}' for app, model in SUPPORT_MODELS for action in SUPPORT_ACTIONS
+    ]
+    support_perms = Permission.objects.filter(
+        content_type__app_label__in={app for app, _ in SUPPORT_MODELS},
+        codename__in=support_codenames,
+    )
+    if support_perms.exists():
+        support_group.permissions.set(support_perms)
+
+    return manager, admin_group, support_group

@@ -9,18 +9,23 @@
 <body class="dash">
 
 <aside class="dash-side">
-  <a class="dash-brand" href="{% url 'dashboard:overview' %}">
+  {# `after_login` rolga qarab yo'naltiradi — support «Umumiy» ga kira olmaydi. #}
+  <a class="dash-brand" href="{% url 'dashboard:after_login' %}">
     <span class="brand-mark">S</span>
     <span>{{ site.brand_name }}<small>{% t "dash.title" %}</small></span>
   </a>
 
   <nav class="dash-nav">
+    {# Support xodimi faqat suhbatlarni ko'radi. #}
+    <a href="{% url 'dashboard:chat_list' %}">💬 {% t "dash.chats" %}{% if waiting_chats %}<b class="dash-badge">{{ waiting_chats }}</b>{% endif %}</a>
+    {% if not is_support %}
     <a href="{% url 'dashboard:overview' %}">📊 {% t "dash.overview" %}</a>
     <a href="{% url 'dashboard:order_list' %}">🧾 {% t "dash.orders" %}</a>
     <a href="{% url 'dashboard:lead_list' %}">📞 {% t "dash.leads" %}</a>
     <a href="{% url 'dashboard:section_list' 'mahsulotlar' %}">🛍 {% t "dash.products" %}</a>
     <a href="{% url 'dashboard:section_list' 'kategoriyalar' %}">🗂 {% t "dash.categories" %}</a>
     <a href="{% url 'dashboard:section_list' 'ishlarimiz' %}">✦ {% t "dash.works" %}</a>
+    {% endif %}
     {% if is_site_admin %}
       <p class="dash-nav-title">{% t "dash.content" %}</p>
       <a href="{% url 'dashboard:section_list' 'bannerlar' %}">🖼 {% t "dash.banners" %}</a>

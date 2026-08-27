@@ -1,0 +1,59 @@
+{% extends 'dashboard/base.html' %}
+{% load site_extras %}
+{% block title %}{% t "dash.chats" %}{% endblock %}
+{% block heading %}{% t "dash.chats" %}{% endblock %}
+
+{% block content %}
+<form class="dash-filter" method="get">
+  <select class="field" name="status">
+    <option value="">{% t "common.all" %}</option>
+    {% for value, label in statuses %}
+      <option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="button ghost small" type="submit">{% t "catalog.apply" %}</button>
+  <span class="muted">{{ total }}</span>
+</form>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>{% t "common.status" %}</th>
+        <th>Oxirgi xabar</th>
+        <th>{% t "common.date" %}</th>
+        <th>Operator</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for conversation in page_obj %}
+        <tr>
+          <td>
+            <a href="{% url 'dashboard:chat_detail' conversation.pk %}"><b>#{{ conversation.pk }}</b></a>
+            {% if conversation.unread_count %}
+              <span class="chat-badge">{{ conversation.unread_count }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if conversation.is_waiting %}
+              <b class="chat-waiting">⏳ {% t "dash.chat_waiting" %}</b>
+            {% else %}
+              {{ conversation.get_status_display }}
+            {% endif %}
+          </td>
+          <td class="chat-preview">
+            {% with last=conversation.messages.last %}{{ last.text|truncatechars:60|default:"—" }}{% endwith %}
+          </td>
+          <td>{{ conversation.last_message_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ conversation.operator.get_username|default:"—" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="muted">{% t "dash.chat_empty" %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'includes/pagination.html' with page_obj=page_obj %}
+{% endblock %}

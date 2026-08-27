@@ -71,6 +71,55 @@ maydonlar saqlashda avtomatik to‘ladi.
 Buyurtma mehmon sifatida beriladi: savat sessiyada saqlanadi, checkout'da ism, telefon va
 manzil so‘raladi. Buyurtmalar va callback arizalari boshqaruv panelida ko‘rinadi.
 
+## Suhbat yordamchisi va support roli
+
+Saytning har bir sahifasida o‘ng pastda suhbat oynasi bor. Mijozga birinchi
+bo‘lib **sun’iy intellekt** (Google Gemini, bepul tarif) javob beradi.
+
+**Jonli operatorga o‘tish** ikki yo‘l bilan bo‘ladi:
+
+1. Mijoz «jonli operator kerak» (yoki «нужен оператор» va shunga o‘xshash)
+   deb yozsa — kalit ibora bo‘yicha darhol. Bu AI o‘chiq bo‘lsa ham ishlaydi.
+2. AI javob bera olmasa — o‘zi operatorni chaqiradi.
+
+Shundan keyin **support** rolidagi xodimlarga (va administratorlarga) email
+ketadi, panelda esa «Suhbatlar» yonida qizil hisoblagich paydo bo‘ladi.
+Operator javob yozgan zahoti AI o‘sha suhbatga aralashmaydi.
+
+### Support roli
+
+`Xodimlar → Yangi xodim → Rol: Support (suhbatlar)`.
+
+Support xodimi **faqat suhbatlarni** ko‘radi — buyurtmalar, mijoz telefonlari,
+mahsulot va sozlamalarga ruxsati yo‘q. Kirgandan keyin to‘g‘ridan-to‘g‘ri
+suhbatlar sahifasiga tushadi.
+
+### Sozlash
+
+| O‘zgaruvchi | Vazifasi |
+|---|---|
+| `GEMINI_API_KEY` | Kalit: https://aistudio.google.com/apikey . **Bo‘sh bo‘lsa** AI o‘chadi va mijoz to‘g‘ridan-to‘g‘ri operatorga ulanadi — sayt baribir ishlaydi |
+| `GEMINI_MODEL` | Odatiy: `gemini-3.5-flash-lite`. Model nomi o‘zgarsa shu yerdan almashtiriladi |
+| `AI_SUPPORT` | `False` qilinsa AI butunlay o‘chadi |
+| `EMAIL_*` | Xabar yuborish uchun SMTP. `DEBUG=True` da xat konsolga chiqadi |
+| `SUPPORT_NOTIFY_EMAILS` | Xodim profilidagi emaildan tashqari qo‘shimcha manzillar |
+
+### AI nimalarni biladi va nimani qilmaydi
+
+Tizim ko‘rsatmasiga do‘kon nomi, telefoni, ish vaqti, aktiv kategoriyalar va
+ularning eng arzon narxi, yetkazib berish tumanlari va saytdan foydalanish
+tartibi joylanadi (`support/ai.py`).
+
+AI **faqat shu do‘kon va sayt mavzusida** gaplashadi. Boshqa mavzu (ob-havo,
+siyosat, dasturlash, uy vazifasi) so‘ralsa muloyim rad etadi va mavzuni
+qaytaradi. Aniq narx yoki o‘lchov so‘ralsa o‘ylab topmaydi — operatorni chaqiradi.
+Mijozdan telefon raqami so‘ramaydi.
+
+> **Maxfiylik:** bepul tarifda Google yuborilgan matnni xizmatni yaxshilash
+> uchun ishlatishi mumkin. Shuning uchun Gemini’ga yuborishdan oldin matndagi
+> telefon raqamlari `[telefon]` bilan niqoblanadi — bazada esa to‘liq saqlanadi
+> va operator ko‘radi.
+
 ## Hudud — Surxondaryo viloyati
 
 Sayt faqat Surxondaryo bo‘ylab ishlaydi. Tumanlar ro‘yxati bitta joyda —
@@ -87,14 +136,15 @@ faqat shu faylni tahrirlash kifoya.
 
 ## Bildirishnoma (popup)
 
-Sahifa ochilgandan 30 soniya keyin markazda modal chiqib, telefon raqam so‘raydi.
-Foydalanuvchi uni yopsa yoki ariza yuborsa — o‘sha sessiyada boshqa chiqmaydi
-(`sessionStorage`, kalit `sd-promo-seen`).
+Sahifa ochilgandan **25 soniya** keyin markazda modal chiqib, telefon raqam
+so‘raydi. Bir seansda **bir marta** chiqadi — yopilsa ham qaytmaydi
+(`sessionStorage`, kalit `sd-promo-submitted`). Ilgari har 15 soniyada
+qayta chiqardi, bu telefonda o‘qishga imkon bermasdi.
 
 - Markup: `templates/base.html` dagi `#modal-promo` (ichida `includes/lead_form.html`).
 - Mantiq: `static/js/main.js` — «Bildirishnoma» bo‘limi.
 - Matn: `parda_shop/translations.py` dagi `popup.title` va `popup.text`.
-- Vaqtni o‘zgartirish: `main.js` dagi `30000` (millisekund).
+- Vaqtni o‘zgartirish: `main.js` dagi `PROMO_DELAY` (millisekund).
 - Arizalar panelda **«Bildirishnoma»** turi bilan tushadi (`Lead.TYPES` → `popup`),
   `/uz/boshqaruv/sorovlar/?type=popup` orqali filtrlanadi.
 
@@ -150,6 +200,7 @@ o‘chirilsa, huquq ham qaytarib olinadi (`accounts/signals.py`).
 | Bo‘lim | Menejer | Administrator |
 |---|---|---|
 | Umumiy statistika, buyurtmalar, so‘rovlar | ✓ | ✓ |
+| Suhbatlar (chat) — ko‘rish va javob berish | ✓ | ✓ |
 | Mahsulot, kategoriya, ish (portfolio) qo‘shish/tahrirlash | ✓ | ✓ |
 | Yozuvni o‘chirish | — | ✓ |
 | Banner, afzallik, mijozlar fikri, hamkor, kontent bloklari | — | ✓ |
@@ -229,6 +280,7 @@ accounts/    Profile (rol), login formasi, rol guruhlari, ruxsat dekoratorlari
 catalog/     Category, Product, ProductImage + katalog/qidiruv view'lari
 orders/      sessiyadagi Cart, Order/OrderItem, Lead (ariza formalari)
 pages/       SiteSettings, Banner, Advantage, FaqItem, Service, Article, ContentBlock
+support/     Conversation, Message — suhbat, AI javoblari, eskalatsiya
 dashboard/   /boshqaruv/ paneli (registry asosidagi generic CRUD + buyurtma/lead/xodim)
 templates/   base.html, includes/, pages/, catalog/, orders/, dashboard/
 static/      css/style.css (sayt), css/dashboard.css (panel va login), js/main.js

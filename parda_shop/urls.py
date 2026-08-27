@@ -13,6 +13,7 @@ urlpatterns += i18n_patterns(
     path('boshqaruv/', include('dashboard.urls')),
     path('', include('catalog.urls')),
     path('', include('orders.urls')),
+    path('', include('support.urls')),
     path('', include('pages.urls')),
     prefix_default_language=True,
 )

@@ -139,6 +139,24 @@ UI = {
         'lead.success': 'Arizangiz qabul qilindi! Tez orada bog‘lanamiz.',
         'lead.error': 'Iltimos, ism va telefon raqamini to‘g‘ri kiriting.',
 
+        # --- suhbat (support) ---
+        'support.title': 'Yordam kerakmi?',
+        'support.subtitle': 'Savolingizni yozing — darhol javob beramiz',
+        'support.open': 'Suhbat',
+        'support.placeholder': 'Xabaringizni yozing...',
+        'support.send': 'Yuborish',
+        'support.greeting': 'Assalomu alaykum! Pardalar bo‘yicha savolingiz bo‘lsa yozing. '
+                            'Jonli operator kerak bo‘lsa «jonli operator kerak» deb yozing.',
+        'support.ai_note': 'Javoblarni sun’iy intellekt beradi',
+        'support.operator_called': 'Operatorga xabar berdim — tez orada javob beradi. '
+                                   'Iltimos, shu oynani yopmang.',
+        'support.waiting': 'Operator kutilmoqda',
+        'support.connected': 'Operator ulandi',
+        'support.empty': 'Xabar bo‘sh.',
+        'support.too_long': 'Xabar juda uzun.',
+        'support.rate_limited': 'Juda ko‘p xabar yuborildi. Bir ozdan keyin urinib ko‘ring.',
+        'support.failed': 'Xabar yuborilmadi. Internetni tekshiring.',
+
         # --- interfeys ---
         'theme.toggle': 'Yorug‘ / tungi rejim',
 
@@ -186,6 +204,11 @@ UI = {
         'dash.advantages': 'Afzalliklar',
         'dash.services': 'Xizmatlar',
         'dash.works': 'Mening ishlarim',
+        'dash.chats': 'Suhbatlar',
+        'dash.chat_waiting': 'Operator kutilmoqda',
+        'dash.chat_reply': 'Javob yozish',
+        'dash.chat_close': 'Suhbatni yopish',
+        'dash.chat_empty': 'Hozircha suhbat yo‘q.',
         'dash.users': 'Xodimlar',
         'dash.user_add': 'Yangi xodim',
         'dash.settings': 'Sozlamalar',
@@ -333,6 +356,24 @@ UI = {
         'lead.success': 'Заявка принята! Скоро свяжемся с вами.',
         'lead.error': 'Пожалуйста, укажите имя и корректный номер телефона.',
 
+        # --- чат (support) ---
+        'support.title': 'Нужна помощь?',
+        'support.subtitle': 'Напишите вопрос — ответим сразу',
+        'support.open': 'Чат',
+        'support.placeholder': 'Ваше сообщение...',
+        'support.send': 'Отправить',
+        'support.greeting': 'Здравствуйте! Задайте вопрос про шторы. '
+                            'Если нужен живой оператор — напишите «нужен оператор».',
+        'support.ai_note': 'Отвечает искусственный интеллект',
+        'support.operator_called': 'Передал оператору — он скоро ответит. '
+                                   'Пожалуйста, не закрывайте окно.',
+        'support.waiting': 'Ожидание оператора',
+        'support.connected': 'Оператор на связи',
+        'support.empty': 'Пустое сообщение.',
+        'support.too_long': 'Сообщение слишком длинное.',
+        'support.rate_limited': 'Слишком много сообщений. Попробуйте позже.',
+        'support.failed': 'Сообщение не отправлено. Проверьте интернет.',
+
         # --- интерфейс ---
         'theme.toggle': 'Светлая / тёмная тема',
 
@@ -380,6 +421,11 @@ UI = {
         'dash.advantages': 'Преимущества',
         'dash.services': 'Услуги',
         'dash.works': 'Наши работы',
+        'dash.chats': 'Чаты',
+        'dash.chat_waiting': 'Ожидание оператора',
+        'dash.chat_reply': 'Написать ответ',
+        'dash.chat_close': 'Закрыть чат',
+        'dash.chat_empty': 'Пока нет чатов.',
         'dash.users': 'Сотрудники',
         'dash.user_add': 'Новый сотрудник',
         'dash.settings': 'Настройки',

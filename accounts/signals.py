@@ -3,9 +3,10 @@ from django.db.models.signals import post_delete, post_migrate, post_save
 from django.dispatch import receiver
 
 from .models import Profile
-from .roles import GROUP_ADMIN, GROUP_MANAGER, ensure_roles
+from .roles import GROUP_ADMIN, GROUP_MANAGER, GROUP_SUPPORT, ensure_roles
 
 GROUP_BY_ROLE = {
+    Profile.ROLE_SUPPORT: GROUP_SUPPORT,
     Profile.ROLE_MANAGER: GROUP_MANAGER,
     Profile.ROLE_ADMIN: GROUP_ADMIN,
 }

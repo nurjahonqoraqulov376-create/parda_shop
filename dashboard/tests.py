@@ -10,6 +10,7 @@ from accounts.models import Profile
 from catalog.models import Product
 from dashboard.registry import REGISTRY, get_form_class
 from orders.models import Order
+from support.models import Conversation, Message
 
 User = get_user_model()
 
@@ -121,3 +122,84 @@ class RegistryTests(TestCase):
                 for field in section['search_fields']:
                     self.assertIn(field, field_names, '%s: %s maydoni yo‘q' % (key, field))
                 self.assertTrue(form.fields)
+
+
+@override_settings(AUTO_TRANSLATE=False)
+class SupportRoleTests(TestCase):
+    """Support xodimi faqat suhbatlarni ko'radi — boshqa hech narsani."""
+
+    def setUp(self):
+        self.support = make_staff('support_xodim', Profile.ROLE_SUPPORT)
+        self.conversation = Conversation.objects.create(
+            session_key='abc', status=Conversation.STATUS_WAITING,
+        )
+        Message.objects.create(
+            conversation=self.conversation, sender=Message.SENDER_VISITOR,
+            text='jonli operator kerak',
+        )
+        self.client.force_login(self.support)
+
+    def test_suhbatlarga_kiradi(self):
+        self.assertEqual(self.client.get(reverse('dashboard:chat_list')).status_code, 200)
+        detail = reverse('dashboard:chat_detail', args=[self.conversation.pk])
+        self.assertEqual(self.client.get(detail).status_code, 200)
+
+    def test_buyurtma_va_sorovlarga_kira_olmaydi(self):
+        for name in ('dashboard:overview', 'dashboard:order_list',
+                     'dashboard:lead_list', 'dashboard:user_list', 'dashboard:settings'):
+            with self.subTest(name=name):
+                self.assertEqual(self.client.get(reverse(name)).status_code, 403)
+
+    def test_crud_bolimlariga_kira_olmaydi(self):
+        for key in ('mahsulotlar', 'kategoriyalar', 'ishlarimiz', 'bannerlar'):
+            with self.subTest(key=key):
+                url = reverse('dashboard:section_list', args=[key])
+                self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_kirgandan_keyin_suhbatlarga_tushadi(self):
+        response = self.client.get(reverse('dashboard:after_login'))
+        self.assertRedirects(response, reverse('dashboard:chat_list'))
+
+    def test_menyuda_faqat_suhbatlar_korinadi(self):
+        html = self.client.get(reverse('dashboard:chat_list')).content.decode('utf-8')
+        self.assertIn(reverse('dashboard:chat_list'), html)
+        self.assertNotIn(reverse('dashboard:order_list'), html)
+        self.assertNotIn(reverse('dashboard:lead_list'), html)
+
+    def test_javob_yozganda_ai_ochadi(self):
+        url = reverse('dashboard:chat_detail', args=[self.conversation.pk])
+        self.client.post(url, {'text': 'Assalomu alaykum, tinglayman'})
+        self.conversation.refresh_from_db()
+        self.assertEqual(self.conversation.status, Conversation.STATUS_WITH_OPERATOR)
+        self.assertEqual(self.conversation.operator, self.support)
+        self.assertTrue(self.conversation.messages.filter(sender='operator').exists())
+
+    def test_ochilganda_oqilgan_deb_belgilanadi(self):
+        self.assertEqual(self.conversation.unread_count, 1)
+        self.client.get(reverse('dashboard:chat_detail', args=[self.conversation.pk]))
+        self.assertEqual(self.conversation.unread_count, 0)
+
+    def test_suhbatni_yopadi(self):
+        url = reverse('dashboard:chat_close', args=[self.conversation.pk])
+        self.client.post(url)
+        self.conversation.refresh_from_db()
+        self.assertEqual(self.conversation.status, Conversation.STATUS_CLOSED)
+
+
+@override_settings(AUTO_TRANSLATE=False)
+class ManagerChatAccessTests(TestCase):
+    """Menejer va admin ham suhbatlarni ko'radi."""
+
+    def test_menejer_kiradi(self):
+        self.client.force_login(make_staff('menejer_chat', Profile.ROLE_MANAGER))
+        self.assertEqual(self.client.get(reverse('dashboard:chat_list')).status_code, 200)
+
+    def test_admin_umumiy_korinishga_tushadi(self):
+        self.client.force_login(make_staff('admin_chat', Profile.ROLE_ADMIN))
+        response = self.client.get(reverse('dashboard:after_login'))
+        self.assertRedirects(response, reverse('dashboard:overview'))
+
+    def test_profilsiz_foydalanuvchi_kira_olmaydi(self):
+        outsider = User.objects.create_user('begona', password='Parol12345!')
+        self.client.force_login(outsider)
+        self.assertEqual(self.client.get(reverse('dashboard:chat_list')).status_code, 403)

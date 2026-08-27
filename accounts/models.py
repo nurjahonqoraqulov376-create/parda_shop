@@ -5,9 +5,11 @@ from django.db import models
 class Profile(models.Model):
     """Xodim profili. Profil bor foydalanuvchi — boshqaruv paneliga kira oladi."""
 
+    ROLE_SUPPORT = 'support'
     ROLE_MANAGER = 'manager'
     ROLE_ADMIN = 'admin'
     ROLES = [
+        (ROLE_SUPPORT, 'Support (suhbatlar)'),
         (ROLE_MANAGER, 'Menejer'),
         (ROLE_ADMIN, 'Administrator'),
     ]
@@ -22,6 +24,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.get_username()
+
+    @property
+    def is_support(self):
+        return self.role == self.ROLE_SUPPORT
 
     @property
     def is_manager(self):

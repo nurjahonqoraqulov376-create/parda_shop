@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'orders',
     'pages',
     'dashboard',
+    'support',
 ]
 
 MIDDLEWARE = [
@@ -94,7 +95,8 @@ SITE_ID = 1
 # Kirish faqat xodimlar uchun — boshqaruv paneli ichidagi login sahifasi.
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 LOGIN_URL = reverse_lazy('dashboard:login')
-LOGIN_REDIRECT_URL = reverse_lazy('dashboard:overview')
+# Kirgandan keyin rolga qarab yo'naltiriladi (support -> suhbatlar).
+LOGIN_REDIRECT_URL = reverse_lazy('dashboard:after_login')
 LOGOUT_REDIRECT_URL = '/'
 
 # CSRF middleware uchun ishonchli manbalar (prod'da haqiqiy domeni qo'shish)
@@ -129,6 +131,37 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(SECURE_HSTS_SECONDS)
     SECURE_HSTS_PRELOAD = bool(SECURE_HSTS_SECONDS)
+
+# --------------------------------------------------------------------------
+# Email — support xodimlariga «jonli operator kerak» xabarini yuborish uchun.
+# Mahalliy ishlashda (DEBUG=True) xat konsolga chiqadi, SMTP kerak emas.
+# --------------------------------------------------------------------------
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=10)
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='sevara-design@example.com')
+
+# Xodimlarning profilidagi emaildan tashqari qo'shimcha manzillar.
+SUPPORT_NOTIFY_EMAILS = env.list('SUPPORT_NOTIFY_EMAILS', default=[])
+# Emaildagi havola to'liq bo'lishi uchun (bo'sh bo'lsa nisbiy manzil yoziladi).
+SITE_BASE_URL = env('SITE_BASE_URL', default='')
+
+# --------------------------------------------------------------------------
+# Suhbat yordamchisi — Google Gemini (bepul tarif).
+# Kalit bo'lmasa AI o'chadi va mijoz to'g'ridan-to'g'ri operatorga ulanadi.
+# --------------------------------------------------------------------------
+AI_SUPPORT = env.bool('AI_SUPPORT', default=True)
+GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
+GEMINI_MODEL = env('GEMINI_MODEL', default='gemini-3.5-flash-lite')
+AI_SUPPORT_TIMEOUT = env.float('AI_SUPPORT_TIMEOUT', default=12.0)
+AI_SUPPORT_MAX_TOKENS = env.int('AI_SUPPORT_MAX_TOKENS', default=400)
 
 # Savat sessiyadagi kaliti
 CART_SESSION_KEY = 'cart'

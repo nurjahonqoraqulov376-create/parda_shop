@@ -1078,3 +1078,105 @@ a, button, summary, label, [role="button"], .dot, .thumb {
   .stats-grid { gap: 20px; }
   .toolbar { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   16. Suhbat oynasi (support chat)
+   ========================================================================== */
+.sc { position: fixed; right: 18px; bottom: 18px; z-index: var(--z-modal); }
+
+.sc-fab {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 12px 18px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--ink); color: var(--bg); font: 600 14px 'DM Sans', sans-serif;
+  box-shadow: var(--sh-2);
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.sc-fab:hover { background: var(--accent); color: #fff; transform: translateY(-2px); }
+.sc-fab-icon { font-size: 18px; line-height: 1; }
+.sc.is-open .sc-fab { display: none; }
+
+/* Operator kutilayotganda tugma diqqatni tortadi. */
+.sc.is-waiting .sc-fab { background: var(--accent); color: #fff; }
+
+.sc-panel {
+  width: min(380px, calc(100vw - 36px)); height: min(560px, calc(100vh - 120px));
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); box-shadow: var(--sh-3);
+}
+.sc-panel[hidden] { display: none; }
+
+.sc-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.sc-head b { display: block; font-size: 15px; }
+.sc-head small { color: var(--muted); font-size: 12px; }
+.sc-close {
+  border: 0; background: none; color: var(--muted); font-size: 24px; line-height: 1;
+  cursor: pointer; padding: 0 4px;
+}
+.sc-close:hover { color: var(--accent); }
+
+.sc-log {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.sc-msg { max-width: 85%; }
+.sc-msg p { margin: 0; padding: 10px 13px; border-radius: var(--r); font-size: 14px; line-height: 1.5; }
+.sc-msg time { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
+
+.sc-ai p, .sc-operator p, .sc-system p {
+  background: var(--surface-2); border: 1px solid var(--line); border-bottom-left-radius: 4px;
+}
+.sc-operator p { border-color: var(--accent); }
+.sc-system p { color: var(--muted); font-style: italic; }
+.sc-visitor { align-self: flex-end; }
+.sc-visitor p { background: var(--ink); color: var(--bg); border-bottom-right-radius: 4px; }
+
+/* «Yozmoqda...» nuqtalari */
+.sc.is-typing .sc-log::after {
+  content: '• • •'; align-self: flex-start; color: var(--muted);
+  font-size: 13px; letter-spacing: 2px; padding: 6px 4px;
+  animation: sc-pulse 1.2s var(--ease) infinite;
+}
+@keyframes sc-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+.sc-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.sc-input {
+  flex: 1; resize: none; max-height: 120px;
+  border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px;
+  font: inherit; background: var(--bg); color: var(--ink);
+}
+.sc-input:focus { outline: none; border-color: var(--accent); }
+.sc-send {
+  flex: none; width: 40px; border: 0; border-radius: var(--r); cursor: pointer;
+  background: var(--ink); color: var(--bg); font-size: 18px;
+  transition: background var(--dur) var(--ease);
+}
+.sc-send:hover { background: var(--accent); color: #fff; }
+
+.sc-note { margin: 0; padding: 0 14px 10px; font-size: 11px; color: var(--muted); text-align: center; }
+
+/* --- Telefon: to'liq ekranli varaq ------------------------------------- */
+@media (max-width: 560px) {
+  .sc { right: 12px; bottom: 12px; left: 12px; }
+  .sc-fab { width: 100%; justify-content: center; }
+  .sc-panel {
+    position: fixed; inset: 0; width: 100%; height: 100dvh;
+    border: 0; border-radius: 0;
+  }
+  .sc-log { padding-bottom: 6px; }
+  @supports (padding: max(0px)) {
+    .sc { bottom: max(12px, env(safe-area-inset-bottom)); }
+    .sc-head { padding-top: max(14px, env(safe-area-inset-top)); }
+    .sc-note { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  }
+}
+
+@media (pointer: coarse) {
+  /* iOS maydon shrifti 16px dan kichik bo'lsa sahifani kattalashtiradi. */
+  .sc-input { font-size: 16px; }
+  .sc-fab, .sc-send, .sc-close { min-height: 44px; }
+  .sc-send { min-width: 44px; }
+}

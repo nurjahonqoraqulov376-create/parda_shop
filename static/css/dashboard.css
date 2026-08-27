@@ -200,3 +200,42 @@ a, button, label, summary { -webkit-tap-highlight-color: transparent; touch-acti
     .dash-main { padding-bottom: max(36px, env(safe-area-inset-bottom)); }
   }
 }
+
+/* ==========================================================================
+   Suhbatlar (support)
+   ========================================================================== */
+.dash-badge, .chat-badge {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px;
+  margin-left: 6px; padding: 0 6px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+}
+.chat-waiting { color: var(--accent); }
+.chat-preview { color: var(--muted); }
+
+.chat-log {
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: 60vh; overflow-y: auto; padding: 14px 2px; margin: 14px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.chat-row { display: flex; }
+.chat-visitor { justify-content: flex-start; }
+.chat-ai, .chat-operator, .chat-system { justify-content: flex-end; }
+.chat-bubble {
+  max-width: 78%; padding: 10px 13px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: #fff;
+}
+.chat-visitor .chat-bubble { background: #f4f1ec; }
+.chat-operator .chat-bubble { border-color: var(--accent); }
+.chat-system .chat-bubble { font-style: italic; color: var(--muted); }
+.chat-bubble p { margin: 4px 0 0; }
+.chat-who { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.chat-bubble time { display: block; margin-top: 5px; font-size: 10px; color: var(--muted); }
+
+.chat-reply { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.chat-reply textarea { width: 100%; }
+.inline-form { display: inline; }
+
+@media (max-width: 560px) {
+  .chat-bubble { max-width: 92%; }
+  .chat-reply .button { width: 100%; }
+}

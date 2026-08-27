@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db.models.deletion import ProtectedError
 from django.core.paginator import Paginator
-from django.db.models import Count, Q, Sum
+from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -15,6 +15,7 @@ from catalog.models import Product
 from orders.models import Lead, Order
 from pages.models import SiteSettings
 from parda_shop.translations import translate
+from support.models import Conversation, Message
 
 from .forms import LeadStatusForm, OrderStatusForm, dashboard_form
 from .registry import get_form_class, get_section
@@ -23,6 +24,8 @@ User = get_user_model()
 PAGE_SIZE = 20
 
 MANAGER_ROLES = ('manager', 'admin')
+# Support xodimi faqat suhbatlarga kiradi.
+CHAT_ROLES = ('support', 'manager', 'admin')
 
 
 def _t(key):
@@ -133,6 +136,79 @@ def section_delete(request, key, pk):
         'object': instance,
         'cancel_url': reverse('dashboard:section_list', args=[key]),
     })
+
+
+# --------------------------------------------------------------------------
+# Suhbatlar (support)
+# --------------------------------------------------------------------------
+@role_required(*CHAT_ROLES)
+def after_login(request):
+    """Kirgandan keyin rolga mos sahifaga yo'naltiradi.
+
+    Support xodimi umumiy ko'rinishga kira olmaydi, shuning uchun uni
+    to'g'ridan-to'g'ri suhbatlarga tushiramiz.
+    """
+    if has_role(request.user, 'support'):
+        return redirect('dashboard:chat_list')
+    return redirect('dashboard:overview')
+
+
+@role_required(*CHAT_ROLES)
+def chat_list(request):
+    conversations = Conversation.objects.select_related('operator')
+    status = request.GET.get('status', '').strip()
+    if status:
+        conversations = conversations.filter(status=status)
+    # Operator kutayotganlar doim tepada.
+    conversations = conversations.order_by(
+        Case(When(status=Conversation.STATUS_WAITING, then=0), default=1, output_field=IntegerField()),
+        '-last_message_at',
+    )
+    return render(request, 'dashboard/chat_list.html', {
+        'page_obj': _paginate(request, conversations),
+        'status': status,
+        'statuses': Conversation.STATUS,
+        'total': conversations.count(),
+    })
+
+
+@role_required(*CHAT_ROLES)
+def chat_detail(request, pk):
+    conversation = get_object_or_404(Conversation, pk=pk)
+
+    if request.method == 'POST':
+        text = (request.POST.get('text') or '').strip()
+        if text:
+            Message.objects.create(
+                conversation=conversation, sender=Message.SENDER_OPERATOR,
+                text=text, author=request.user, seen_by_operator=True,
+            )
+            # Operator javob yozdi — endi AI aralashmaydi.
+            conversation.status = Conversation.STATUS_WITH_OPERATOR
+            conversation.operator = request.user
+            conversation.save(update_fields=['status', 'operator'])
+            conversation.touch()
+        return redirect('dashboard:chat_detail', pk=conversation.pk)
+
+    # Ochilgan zahoti mijoz xabarlari o'qilgan deb belgilanadi.
+    conversation.messages.filter(
+        sender=Message.SENDER_VISITOR, seen_by_operator=False,
+    ).update(seen_by_operator=True)
+
+    return render(request, 'dashboard/chat_detail.html', {
+        'conversation': conversation,
+        'messages_list': conversation.messages.select_related('author'),
+    })
+
+
+@role_required(*CHAT_ROLES)
+def chat_close(request, pk):
+    conversation = get_object_or_404(Conversation, pk=pk)
+    if request.method == 'POST':
+        conversation.status = Conversation.STATUS_CLOSED
+        conversation.save(update_fields=['status'])
+        messages.success(request, _t('dash.saved'))
+    return redirect('dashboard:chat_list')
 
 
 # --------------------------------------------------------------------------
