@@ -92,8 +92,8 @@
             <span class="cat-icon">{{ category.icon|default:"▦" }}</span>
           {% endif %}
           <span class="cat-name">{% tf category "name" %}</span>
-          {% if category.min_price %}
-            <span class="cat-price">{% t "common.from" %} {{ category.min_price|money }} {% t "common.currency" %}</span>
+          {% if category.min_price_value %}
+            <span class="cat-price">{% t "common.from" %} {{ category.min_price_value|money }} {% t "common.currency" %}</span>
           {% endif %}
         </a>
       {% endfor %}

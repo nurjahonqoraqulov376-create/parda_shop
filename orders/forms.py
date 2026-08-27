@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import get_language
 
 from parda_shop.regions import district_choices
+from parda_shop.translations import translate
 
 from .models import Lead, Order
 
@@ -37,5 +38,5 @@ class LeadForm(forms.ModelForm):
         phone = (self.cleaned_data.get('phone') or '').strip()
         digits = [ch for ch in phone if ch.isdigit()]
         if len(digits) < 7:
-            raise forms.ValidationError('Telefon raqamini to‘liq kiriting.')
+            raise forms.ValidationError(translate('lead.error', get_language()))
         return phone

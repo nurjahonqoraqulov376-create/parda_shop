@@ -25,7 +25,13 @@ def tf(obj, field):
 
 @register.filter
 def money(value):
-    """Narxni 1 234 567 ko'rinishida chiqaradi."""
+    """Narxni 1 234 567 ko'rinishida chiqaradi.
+
+    Qiymat yo'q bo'lsa bo'sh satr qaytadi — shablonda "None" ko'rinib
+    qolmasligi uchun.
+    """
+    if value is None or value == '':
+        return ''
     try:
         number = int(round(float(value)))
     except (TypeError, ValueError):

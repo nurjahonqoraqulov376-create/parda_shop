@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.db.models import Min, Q
 from django.shortcuts import get_object_or_404, render
 
 from catalog.models import Category, Product
@@ -29,7 +30,12 @@ def home(request):
     newest = Product.objects.filter(is_active=True).order_by('-created_at')[:HOME_SECTION_LIMIT]
     return render(request, 'pages/home.html', {
         'banners': Banner.objects.filter(is_active=True),
-        'home_categories': Category.objects.filter(is_active=True)[:12],
+        # Narx alohida so'rovsiz olinsin (`Category.min_price` xossasi har bir
+        # kategoriya uchun bazaga qayta murojaat qilardi).
+        'home_categories': (
+            Category.objects.filter(is_active=True)
+            .annotate(min_price_value=Min('products__price', filter=Q(products__is_active=True)))[:12]
+        ),
         'sections': sections,
         'featured': featured,
         'newest': newest,

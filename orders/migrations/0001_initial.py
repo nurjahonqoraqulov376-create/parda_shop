@@ -14,6 +14,15 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
+    # Bu migratsiya `catalog.Curtain` ga bog'lanadi, `catalog.0002` esa uni
+    # `Product` ga qayta nomlaydi. Tartib majburlanmasa Django `catalog.0002`
+    # ni oldin bajarib yuborishi va "Related model 'catalog.curtain' cannot be
+    # resolved" xatosi bilan to'xtashi mumkin — bo'sh bazaga o'rnatish shu
+    # sababdan ishlamasdi.
+    run_before = [
+        ('catalog', '0002_product_and_content_fields'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='Order',

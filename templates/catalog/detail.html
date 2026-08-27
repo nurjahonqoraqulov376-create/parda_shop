@@ -65,11 +65,15 @@
       <form class="buy-form" method="post" action="{% url 'orders:cart_add' product.pk %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="{% url 'orders:cart_detail' %}">
-        <label class="qty">
-          <span>{% t "product.quantity" %}</span>
-          <input class="field" type="number" name="quantity" min="1" value="1">
-        </label>
-        <button class="button" type="submit">{% t "product.add_to_cart" %}</button>
+        {% if product.in_stock %}
+          <label class="qty">
+            <span>{% t "product.quantity" %}</span>
+            <input class="field" type="number" name="quantity" min="1" max="{{ product.stock }}" value="1">
+          </label>
+          <button class="button" type="submit">{% t "product.add_to_cart" %}</button>
+        {% else %}
+          <button class="button" type="submit" disabled>{% t "product.out_of_stock" %}</button>
+        {% endif %}
         <button class="button ghost" type="button" data-modal-open="callback">{% t "topbar.callback" %}</button>
       </form>
 

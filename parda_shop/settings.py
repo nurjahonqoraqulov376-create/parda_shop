@@ -60,7 +60,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'parda_shop.wsgi.application'
 
 DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
-AUTH_PASSWORD_VALIDATORS = []
+
+# Xodim parollari uchun eng kam talablar. Mijozlar ro'yxatdan o'tmaydi,
+# lekin boshqaruv paneli hisoblari zaif parol bilan qolmasligi kerak.
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+     'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
 
 LANGUAGE_CODE = 'uz'
 LANGUAGES = [('uz', "O'zbekcha"), ('ru', 'Русский')]
@@ -98,6 +107,28 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['http://127.0.0
 if env.bool('BEHIND_PROXY', default=False):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     USE_X_FORWARDED_HOST = True
+
+# --------------------------------------------------------------------------
+# Ishlab chiqarish rejimidagi (DEBUG=False) xavfsizlik sozlamalari.
+# Mahalliy ishlashda (DEBUG=True) yoqilmaydi, aks holda http://127.0.0.1
+# https'ga yo'naltirilib, sayt ochilmay qolardi.
+# --------------------------------------------------------------------------
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Tunnel orqasida SSL'ni Django emas, proksi hal qiladi — shuning uchun
+    # yo'naltirishni alohida yoqiladi.
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+    SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(SECURE_HSTS_SECONDS)
+    SECURE_HSTS_PRELOAD = bool(SECURE_HSTS_SECONDS)
 
 # Savat sessiyadagi kaliti
 CART_SESSION_KEY = 'cart'

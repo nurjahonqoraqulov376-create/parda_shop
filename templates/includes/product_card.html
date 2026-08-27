@@ -20,7 +20,11 @@
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
       <input type="hidden" name="quantity" value="1">
-      <button class="button outline full" type="submit">{% t "product.add_to_cart" %}</button>
+      {% if product.in_stock %}
+        <button class="button outline full" type="submit">{% t "product.add_to_cart" %}</button>
+      {% else %}
+        <button class="button outline full" type="submit" disabled>{% t "product.out_of_stock" %}</button>
+      {% endif %}
     </form>
   </div>
 </article>

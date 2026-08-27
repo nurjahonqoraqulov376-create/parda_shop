@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.db.models.deletion import ProtectedError
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.http import Http404
@@ -117,7 +118,13 @@ def section_delete(request, key, pk):
         raise PermissionDenied(_t('dash.no_access'))
     instance = get_object_or_404(section['model'], pk=pk)
     if request.method == 'POST':
-        instance.delete()
+        try:
+            instance.delete()
+        except ProtectedError:
+            # Masalan, buyurtmada ishlatilgan mahsulot: `OrderItem` PROTECT
+            # bo'lgani uchun o'chirib bo'lmaydi. Ilgari bu 500 xato berardi.
+            messages.error(request, _t('dash.delete_protected'))
+            return redirect('dashboard:section_list', key=key)
         messages.success(request, _t('dash.deleted'))
         return redirect('dashboard:section_list', key=key)
     return render(request, 'dashboard/confirm_delete.html', {
