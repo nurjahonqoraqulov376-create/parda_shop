@@ -1,4 +1,5 @@
 from django import template
+from django.conf import settings
 from django.utils.translation import get_language
 
 from parda_shop.regions import district_label
@@ -57,3 +58,32 @@ def query_string(context, **kwargs):
             params[key] = value
     encoded = params.urlencode() if hasattr(params, 'urlencode') else ''
     return f'?{encoded}' if encoded else ''
+
+
+@register.simple_tag(takes_context=True)
+def language_url(context, code):
+    """Joriy sahifaning boshqa tildagi manzili.
+
+    Django'ning `set_language` view'i bu saytda ishonchli emas: u
+    `i18n_patterns` dan TASHQARIDA turadi, shuning uchun `resolve()` ni
+    joriy faol til prefiksi bilan bajaradi va `/ru/...` manzilini `uz` faol
+    bo'lganda topa olmaydi. Natijada foydalanuvchi o'sha tildagi sahifada
+    qolib ketardi (`uz -> ru` ishlardi, `ru -> uz` yo'q).
+
+    Bu yerda prefiksning o'zi almashtiriladi. Sayt manzillari ikkala tilda
+    bir xil (`katalog/`, `savat/` va h.k. tarjima qilinmagan), shuning uchun
+    bu har doim to'g'ri ishlaydi. Qo'shimcha foyda: POST o'rniga oddiy
+    havola — CSRF ham, `Referer` sarlavhasi ham talab qilinmaydi.
+    """
+    codes = [item[0] for item in settings.LANGUAGES]
+    if code not in codes:
+        return '/'
+    request = context.get('request')
+    if request is None:
+        return '/%s/' % code
+
+    path = request.get_full_path()
+    head, _, tail = path.lstrip('/').partition('/')
+    if head in codes:
+        return '/%s/%s' % (code, tail)
+    return '/%s/%s' % (code, path.lstrip('/'))

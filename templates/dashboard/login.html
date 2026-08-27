@@ -1,4 +1,4 @@
-{% load static site_extras %}<!doctype html>
+{% load static site_extras i18n %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
@@ -41,6 +41,14 @@
   </form>
 
   <p class="login-foot"><a href="{% url 'pages:home' %}">← {% t "dash.to_site" %}</a></p>
+
+  <div class="login-lang">
+    {% get_current_language as CURRENT %}
+    {% for code, label in LANGUAGES %}
+      <a href="{% language_url code %}" hreflang="{{ code }}"
+         class="lang{% if code == CURRENT %} active{% endif %}">{{ code|upper }}</a>
+    {% endfor %}
+  </div>
 </div>
 
 <script>

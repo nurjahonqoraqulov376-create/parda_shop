@@ -239,3 +239,12 @@ a, button, label, summary { -webkit-tap-highlight-color: transparent; touch-acti
   .chat-bubble { max-width: 92%; }
   .chat-reply .button { width: 100%; }
 }
+
+/* Kirish sahifasidagi til almashtirgich */
+.login-lang { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
+.login-lang .lang {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius);
+  font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none;
+}
+.login-lang .lang.active { color: var(--ink); border-color: var(--ink); }

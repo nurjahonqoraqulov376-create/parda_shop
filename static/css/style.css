@@ -223,6 +223,8 @@ input[type=number], input[type=search], input[type=url], textarea, select {
 
 .lang-switch { display: flex; gap: 4px; }
 .lang {
+  /* Endi `<a>` (ilgari `<button>` edi) — markazlash va chiziqsizlik kerak. */
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
   border: 1px solid transparent; background: none; color: var(--on-deep-muted);
   font: 600 11px 'DM Sans'; padding: 3px 7px; border-radius: var(--r-sm); cursor: pointer;
   transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);

@@ -24,6 +24,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
+  {% for code, label in LANGUAGES %}
+    <link rel="alternate" hreflang="{{ code }}" href="{% language_url code %}">
+  {% endfor %}
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
@@ -36,15 +39,17 @@
   <div class="wrap topbar-inner">
     <span class="topbar-hours">🕘 {{ site.working_hours|default:"" }}{% if not site.working_hours %}{% t "topbar.worktime" %}{% endif %}</span>
     <div class="topbar-right">
-      <form class="lang-switch" action="{% url 'set_language' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      {% comment %}
+      Oddiy havola: POST emas, shuning uchun CSRF va `Referer` talab
+      qilinmaydi. `language_url` prefiksni almashtiradi.
+      {% endcomment %}
+      <div class="lang-switch">
         {% get_current_language as CURRENT %}
         {% for code, label in LANGUAGES %}
-          <button type="submit" name="language" value="{{ code }}"
-                  class="lang{% if code == CURRENT %} active{% endif %}">{{ code|upper }}</button>
+          <a href="{% language_url code %}" hreflang="{{ code }}" title="{{ label }}"
+             class="lang{% if code == CURRENT %} active{% endif %}">{{ code|upper }}</a>
         {% endfor %}
-      </form>
+      </div>
       <button type="button" class="theme-toggle" data-theme-toggle
               aria-label="{% t 'theme.toggle' %}" title="{% t 'theme.toggle' %}">☾</button>
       <a class="topbar-phone" href="tel:{{ site.phone_primary }}">{{ site.phone_primary }}</a>
