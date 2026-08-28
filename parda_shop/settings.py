@@ -7,9 +7,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, True))
 environ.Env.read_env(BASE_DIR / '.env')
 
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-dev-key')
 DEBUG = env('DEBUG')
+
+# Ishlab chiqarishda kalit MAJBURIY. Zaxira qiymat qoldirilsa, `.env` ni
+# unutgan holda sayt jimgina hammaga ma'lum kalit bilan ishlab ketardi —
+# bu sessiya va parol tiklash tokenlarini soxtalashtirishga yo'l ochadi.
+if DEBUG:
+    SECRET_KEY = env('SECRET_KEY', default='django-insecure-faqat-ishlab-chiqish-uchun')
+else:
+    SECRET_KEY = env('SECRET_KEY')  # yo'q bo'lsa server ko'tarilmaydi
+
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=['http://127.0.0.1:8000', 'http://localhost:8000'],
+)
+
+# Railway domenni o'zi beradi — uni qo'lda yozib qo'yish shart emas.
+RAILWAY_DOMAIN = env('RAILWAY_PUBLIC_DOMAIN', default='')
+if RAILWAY_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_DOMAIN)
+    CSRF_TRUSTED_ORIGINS.append('https://%s' % RAILWAY_DOMAIN)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,6 +47,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serverda nginx yo'q — css/js ni WhiteNoise beradi. SecurityMiddleware'dan
+    # keyin, qolganlaridan oldin turishi shart.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -60,7 +81,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'parda_shop.wsgi.application'
 
-DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
+# Railway (va boshqa serverlar) `DATABASE_URL` beradi. Mahalliy ishlashda u
+# yo'q — SQLite ishlatiladi. Railway'da SQLite YARAMAYDI: fayl tizimi har
+# qayta joylashda tozalanadi va butun baza yo'qoladi.
+DATABASES = {
+    'default': env.db_url(
+        'DATABASE_URL',
+        default='sqlite:///%s' % (BASE_DIR / 'db.sqlite3'),
+    ),
+}
+# Har so'rovda yangi ulanish ochilmasin (PostgreSQL uchun sezilarli tezlik).
+if not DATABASES['default']['ENGINE'].endswith('sqlite3'):
+    DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)
+    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 # Xodim parollari uchun eng kam talablar. Mijozlar ro'yxatdan o'tmaydi,
 # lekin boshqaruv paneli hisoblari zaif parol bilan qolmasligi kerak.
@@ -82,11 +115,22 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# WhiteNoise fayllarni siqadi va nomiga hash qo'shadi (brauzer keshi eski
+# css'ni ushlab qolmasin). `collectstatic` bajarilishi shart.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-# DEBUG=False bo'lganda ham media fayllarni Django o'zi bersinmi (probniy
-# havola uchun qulay; haqiqiy prod'da bu ishni nginx bajarishi kerak).
-SERVE_MEDIA = env.bool('SERVE_MEDIA', default=False)
+# Yuklangan rasmlarni (media) Django o'zi bersinmi.
+#
+# Railway'da nginx yo'q, shuning uchun u yerda o'zi yoqiladi. MUHIM: Railway
+# fayl tizimi vaqtinchalik — har qayta joylashda tozalanadi. Rasmlar
+# yo'qolmasligi uchun Railway'da Volume yaratib, uni `/app/media` ga ulash
+# SHART (README dagi qadamlarga qarang).
+SERVE_MEDIA = env.bool('SERVE_MEDIA', default=bool(RAILWAY_DOMAIN))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # `django.contrib.sites` eski allauth jadvallari uchun saqlanmoqda.
@@ -99,14 +143,13 @@ LOGIN_URL = reverse_lazy('dashboard:login')
 LOGIN_REDIRECT_URL = reverse_lazy('dashboard:after_login')
 LOGOUT_REDIRECT_URL = '/'
 
-# CSRF middleware uchun ishonchli manbalar (prod'da haqiqiy domeni qo'shish)
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['http://127.0.0.1:8931', 'http://localhost:8931'])
-
 # Tunnel/reverse-proxy orqasida ishlaganda (masalan cloudflared bilan probniy
 # havola) so'rov Django'ga http bo'lib yetadi, lekin tashqarida u https.
 # Faqat ishonchli proksi oldida turganda yoqing — aks holda header'ni
 # soxtalashtirish mumkin.
-if env.bool('BEHIND_PROXY', default=False):
+# Railway'da bu avtomatik yoqiladi: TLS Railway tomonida tugaydi, Django'ga
+# so'rov http bo'lib yetadi, lekin tashqarida u https.
+if env.bool('BEHIND_PROXY', default=bool(RAILWAY_DOMAIN)):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     USE_X_FORWARDED_HOST = True
 
@@ -127,8 +170,13 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     # Tunnel orqasida SSL'ni Django emas, proksi hal qiladi — shuning uchun
     # yo'naltirishni alohida yoqiladi.
-    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
-    SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
+    # Railway'da HTTPS doim bor, shuning uchun u yerda ikkalasi ham o'zi
+    # yoqiladi. Cloudflare tunnelida esa yoqilsa havola ishlamay qoladi —
+    # o'sha yerda `RAILWAY_PUBLIC_DOMAIN` bo'lmagani uchun o'chiq qoladi.
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=bool(RAILWAY_DOMAIN))
+    SECURE_HSTS_SECONDS = env.int(
+        'SECURE_HSTS_SECONDS', default=31536000 if RAILWAY_DOMAIN else 0,
+    )
     SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(SECURE_HSTS_SECONDS)
     SECURE_HSTS_PRELOAD = bool(SECURE_HSTS_SECONDS)
 
@@ -162,6 +210,27 @@ GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 GEMINI_MODEL = env('GEMINI_MODEL', default='gemini-3.5-flash-lite')
 AI_SUPPORT_TIMEOUT = env.float('AI_SUPPORT_TIMEOUT', default=12.0)
 AI_SUPPORT_MAX_TOKENS = env.int('AI_SUPPORT_MAX_TOKENS', default=400)
+
+# --------------------------------------------------------------------------
+# Loglar. Django'ning odatiy sozlamasi DEBUG=False bo'lganda xatolarni faqat
+# adminlarga EMAIL qiladi — SMTP sozlanmagan bo'lsa xato hech qayerga
+# yozilmaydi va serverda nima bo'lganini bilib bo'lmaydi. Shuning uchun
+# hammasini konsolga chiqaramiz: Railway loglarida ko'rinadi.
+# --------------------------------------------------------------------------
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'oddiy': {'format': '{levelname} {asctime} {name} {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'oddiy'},
+    },
+    'root': {'handlers': ['console'], 'level': env('LOG_LEVEL', default='INFO')},
+    'loggers': {
+        'django.request': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False},
+    },
+}
 
 # Savat sessiyadagi kaliti
 CART_SESSION_KEY = 'cart'

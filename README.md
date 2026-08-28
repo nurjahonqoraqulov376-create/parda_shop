@@ -359,23 +359,170 @@ templates/   base.html, includes/, pages/, catalog/, orders/, dashboard/
 static/      css/style.css (sayt), css/dashboard.css (panel), js/main.js, js/support.js
 ```
 
-## Production
+## Railway'ga joylashtirish — qadamma-qadam
 
-Serverga qo‘yishdan oldin:
+Loyiha Railway uchun tayyorlab qo'yilgan: `Procfile`, `railway.json`,
+WhiteNoise (statik fayllar), PostgreSQL qo'llab-quvvatlash va konsolga
+loglar. Quyidagi qadamlarni ketma-ket bajaring.
 
-1. `.env` ni **qo‘lda yarating** (git'da yo‘q) va to‘ldiring:
-   `DEBUG=False`, kuchli `SECRET_KEY`, haqiqiy `ALLOWED_HOSTS` va
-   `CSRF_TRUSTED_ORIGINS`, `GEMINI_API_KEY`, `EMAIL_*`, `SITE_BASE_URL`.
-2. `py manage.py migrate` — bo‘sh bazada ham ishlaydi (migratsiya tartibi
-   `run_before` bilan majburlangan).
-3. `py manage.py setup_roles` — Support / Menejer / Administrator guruhlari.
-4. `py manage.py createsuperuser` — birinchi administrator.
-5. `py manage.py collectstatic`.
-6. `py manage.py check --deploy` — ogohlantirishlarni ko‘rib chiqing.
+### 0-qadam. Kerakli narsalar
 
-Statik va media fayllarni nginx bersin (`SERVE_MEDIA=False`), bazani SQLite'dan
-PostgreSQL'ga ko‘chiring, HTTPS uchun `SECURE_SSL_REDIRECT=True` va
-`SECURE_HSTS_SECONDS=31536000` qo‘shing.
+- GitHub'dagi repozitoriy (bor: `nurjahonqoraqulov376-create/parda_shop`)
+- Railway hisobi — https://railway.app , GitHub bilan kiriladi
+- Gemini kaliti — https://aistudio.google.com/apikey (bepul)
 
-> Suhbat yozishmalari bazada saqlanadi va mijoz telefon raqamini yozgan bo‘lishi
-> mumkin — baza nusxalarini himoyalangan joyda saqlang.
+### 1-qadam. `SECRET_KEY` yaratib olish
+
+Terminalda:
+
+```powershell
+py -c "import secrets; print(secrets.token_urlsafe(50))"
+```
+
+Chiqqan satrni nusxalab qo'ying — 3-qadamda kerak bo'ladi.
+
+> Bu kalitni **hech kimga bermang va git'ga qo'ymang**. U sessiya va parol
+> tiklash tokenlarini imzolaydi. Mahalliy `.env` dagi kalitdan boshqa,
+> yangi kalit bo'lsin.
+
+### 2-qadam. Loyihani Railway'ga ulash
+
+1. https://railway.app → **New Project**
+2. **Deploy from GitHub repo** → `parda_shop` ni tanlang
+3. Railway o'zi Python loyihasini tanib, qura boshlaydi
+
+Birinchi qurish **xato bilan tugaydi** — bu normal, hali `SECRET_KEY` va
+baza yo'q. Keyingi qadamlarda qo'shamiz.
+
+### 3-qadam. PostgreSQL qo'shish
+
+Loyiha ichida: **+ New** → **Database** → **Add PostgreSQL**
+
+Railway `DATABASE_URL` o'zgaruvchisini o'zi yaratadi va ilovaga ulaydi —
+qo'lda hech narsa yozish shart emas.
+
+> **SQLite Railway'da yaramaydi.** Fayl tizimi har qayta joylashda
+> tozalanadi, ya'ni butun baza — buyurtmalar, mijozlar, suhbatlar —
+> yo'qoladi. Shuning uchun PostgreSQL majburiy.
+
+### 4-qadam. O'zgaruvchilarni kiritish
+
+Ilova xizmatini bosing → **Variables** → **New Variable**. Quyidagilarni
+qo'shing:
+
+| Nomi | Qiymati |
+|---|---|
+| `SECRET_KEY` | 1-qadamda chiqqan satr |
+| `DEBUG` | `False` |
+| `GEMINI_API_KEY` | AI Studio'dagi kalit |
+| `AUTO_TRANSLATE` | `True` |
+
+Email uchun (support xabarnomalari kerak bo'lsa):
+
+| Nomi | Qiymati |
+|---|---|
+| `EMAIL_HOST` | masalan `smtp.gmail.com` |
+| `EMAIL_PORT` | `587` |
+| `EMAIL_HOST_USER` | pochta manzilingiz |
+| `EMAIL_HOST_PASSWORD` | ilova paroli (oddiy parol emas!) |
+| `DEFAULT_FROM_EMAIL` | pochta manzilingiz |
+| `SITE_BASE_URL` | `https://<domeningiz>.up.railway.app` |
+
+`ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `PORT`, `DATABASE_URL` —
+**yozmang**, Railway domenidan avtomatik olinadi.
+
+### 5-qadam. Rasmlar uchun Volume (MUHIM)
+
+Railway fayl tizimi vaqtinchalik: har qayta joylashda tozalanadi. Volume
+qo'shmasangiz **yuklangan barcha rasmlar yo'qoladi**.
+
+Ilova xizmati → **Settings** → **Volumes** → **New Volume**
+
+- Mount path: `/app/media`
+- Hajm: 1 GB yetadi (hozircha rasmlar 1.5 MB)
+
+### 6-qadam. Domen ochish
+
+**Settings** → **Networking** → **Generate Domain**
+
+`https://parda-shop-production-xxxx.up.railway.app` ko'rinishida havola
+chiqadi. Shu domen `ALLOWED_HOSTS` ga o'zi qo'shiladi.
+
+### 7-qadam. Qayta joylashtirish
+
+**Deployments** → oxirgisining yonidagi uch nuqta → **Redeploy**
+
+Endi qurish muvaffaqiyatli o'tishi kerak. Jarayonda avtomatik bajariladi:
+
+1. `pip install -r requirements.txt`
+2. `python manage.py collectstatic --noinput` — css/js yig'iladi
+3. `python manage.py migrate --noinput` — baza jadvallari
+4. `python manage.py setup_roles` — Support / Menejer / Administrator guruhlari
+5. `gunicorn parda_shop.wsgi` — server ishga tushadi
+
+### 8-qadam. Birinchi administrator
+
+Railway'da terminal ochish: xizmat sahifasida uch nuqta → **Shell**
+(yoki kompyuterdan `railway run` orqali).
+
+```bash
+python manage.py createsuperuser
+```
+
+Login va parol o'ylab, kiriting. Keyin saytda:
+`https://<domen>/uz/boshqaruv/kirish/`
+
+### 9-qadam. Kontentni to'ldirish
+
+Panelga kirib qo'shasiz. Yoki demo ma'lumot bilan boshlash uchun Shell'da:
+
+```bash
+python manage.py seed_demo
+```
+
+Portfolio rasmlarini yuklash uchun rasmlarni serverga qo'yish kerak —
+odatda paneldan qo'lda yuklash osonroq:
+`/uz/boshqaruv/ishlarimiz/` → **Qo'shish**.
+
+### 10-qadam. Tekshirish
+
+| Nima | Kutilgan |
+|---|---|
+| `https://<domen>/` | `/uz/` ga yo'naltiradi |
+| Sahifa ko'rinishi | css ishlaydi (WhiteNoise) |
+| `/uz/boshqaruv/kirish/` | kirish sahifasi |
+| Suhbat oynasi | savol yozilganda AI javob beradi |
+| `http://` bilan kirish | avtomatik `https://` ga o'tadi |
+
+Xato bo'lsa: **Deployments** → **View Logs**. Barcha xatolar konsolga
+yoziladi (`LOGGING` shunga sozlangan).
+
+---
+
+### Keyingi yangilanishlar
+
+```powershell
+git add -A
+git commit -m "o'zgarish tavsifi"
+git push
+```
+
+Railway `push` ni sezib, o'zi qayta quradi va joylaydi. Migratsiyalar ham
+avtomatik bajariladi.
+
+### Tez-tez uchraydigan xatolar
+
+| Xato | Sabab va yechim |
+|---|---|
+| `Set the SECRET_KEY environment variable` | 4-qadam bajarilmagan |
+| `DisallowedHost` | Domen hali yaratilmagan (6-qadam) yoki o'z domeningizni `ALLOWED_HOSTS` ga qo'shish kerak |
+| Sahifa bor, lekin uslubsiz (oq) | `collectstatic` o'tmagan — qurish loglarini ko'ring |
+| Rasmlar qayta joylashdan keyin yo'qoldi | Volume ulanmagan (5-qadam) |
+| `CSRF verification failed` | O'z domeningizni ishlatsangiz `CSRF_TRUSTED_ORIGINS` ga `https://domen.uz` qo'shing |
+| Suhbatda AI javob bermaydi | `GEMINI_API_KEY` yo'q yoki noto'g'ri — sayt buzilmaydi, operatorga ulaydi |
+
+### Narx haqida
+
+Railway'ning bepul tarifi cheklangan (oyiga ~$5 kredit). Kichik sayt uchun
+odatda yetadi, lekin trafik oshsa to'lov kerak bo'ladi. PostgreSQL va
+Volume ham shu kreditdan yeydi. Sarfni **Usage** bo'limida kuzatasiz.
