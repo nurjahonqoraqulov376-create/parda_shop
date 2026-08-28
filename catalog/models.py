@@ -1,10 +1,11 @@
 from django.db import models
 from django.urls import reverse
 
+from pages.imaging import ShrinkImageOnSaveMixin
 from pages.mixins import TranslatableMixin
 
 
-class Category(TranslatableMixin, models.Model):
+class Category(ShrinkImageOnSaveMixin, TranslatableMixin, models.Model):
     name = models.CharField('Nomi', max_length=120)
     name_ru = models.CharField('Nomi (ru)', max_length=120, blank=True)
     slug = models.SlugField('Slug', unique=True)
@@ -32,7 +33,7 @@ class Category(TranslatableMixin, models.Model):
         return self.products.filter(is_active=True).aggregate(models.Min('price'))['price__min']
 
 
-class Product(TranslatableMixin, models.Model):
+class Product(ShrinkImageOnSaveMixin, TranslatableMixin, models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='products', verbose_name='Kategoriya',

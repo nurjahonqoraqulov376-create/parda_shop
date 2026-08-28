@@ -3,7 +3,8 @@
 <article class="card">
   <a class="card-photo" href="{{ work.get_absolute_url }}">
     {% if work.image %}
-      <img src="{{ work.image.url }}" alt="{% tf work 'title' %}" loading="lazy" width="1000" height="750">
+      <img src="{{ work.image.url }}" alt="{% tf work 'title' %}" loading="lazy"
+           {% img_size work.image %}>
     {% else %}
       <span class="placeholder">✦</span>
     {% endif %}

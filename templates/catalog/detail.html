@@ -10,7 +10,7 @@
       <div class="detail-main" data-gallery-main>
         {% if product.image %}
           <img src="{{ product.image.url }}" alt="{% tf product 'name' %}"
-               width="1000" height="750" fetchpriority="high">
+               {% img_size product.image %} fetchpriority="high">
         {% else %}
           <span class="placeholder large">{{ product.name|slice:":1" }}</span>
         {% endif %}

@@ -19,7 +19,8 @@
 <section class="section">
   <div class="wrap narrow">
     {% if work.image %}
-      <img class="wide-image" src="{{ work.image.url }}" alt="{% tf work 'title' %}" width="1000" height="750">
+      <img class="wide-image" src="{{ work.image.url }}" alt="{% tf work 'title' %}"
+           {% img_size work.image %}>
     {% endif %}
     {% tf work "description" as work_description %}
     {% if work_description %}<div class="prose">{{ work_description|linebreaks }}</div>{% endif %}

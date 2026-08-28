@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 
+from .imaging import ShrinkImageOnSaveMixin
 from .mixins import TranslatableMixin
 
 
@@ -200,7 +201,7 @@ class Article(TranslatableMixin, models.Model):
         return self.title
 
 
-class Work(TranslatableMixin, models.Model):
+class Work(ShrinkImageOnSaveMixin, TranslatableMixin, models.Model):
     """Portfolio — tayyorlangan va o‘rnatilgan pardalar."""
 
     title = models.CharField('Sarlavha', max_length=200)

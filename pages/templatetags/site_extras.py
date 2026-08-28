@@ -1,5 +1,6 @@
 from django import template
 from django.conf import settings
+from django.utils.html import format_html
 from django.utils.translation import get_language
 
 from parda_shop.regions import district_label
@@ -87,3 +88,20 @@ def language_url(context, code):
     if head in codes:
         return '/%s/%s' % (code, tail)
     return '/%s/%s' % (code, path.lstrip('/'))
+
+
+@register.simple_tag
+def img_size(image_field):
+    """`width="..." height="..."` atributlarini qaytaradi.
+
+    Rasm o'lchamini o'qish uchun Django faylni diskdan ochadi. Fayl
+    yo'qolgan bo'lsa (qo'lda o'chirilgan, ko'chirilgan, yuklash uzilgan)
+    `.width` xato ko'taradi va butun sahifa 500 beradi. Shu yerda ushlanadi:
+    atributlarsiz rasm ham ko'rinadi, faqat sahifa yuklanayotganda joy
+    zaxiralanmaydi.
+    """
+    try:
+        width, height = image_field.width, image_field.height
+    except Exception:  # noqa: BLE001 — yo'q fayl sahifani yiqitmasin
+        return ''
+    return format_html('width="{}" height="{}"', width, height)
