@@ -91,3 +91,50 @@ class ImportWorksTests(TestCase):
                     self.assertIn(item['title'], html)
                     detail = self.client.get('/uz/ishlarimiz/%s/' % item['slug'])
                     self.assertEqual(detail.status_code, 200)
+
+
+class InOrderModeTests(TestCase):
+    """`--in-order`: fayl nomlari muhim emas, tartib muhim."""
+
+    def setUp(self):
+        self.source = Path(tempfile.mkdtemp())
+        self.media = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.source, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, self.media, ignore_errors=True)
+        # Telefondan kelganidek begona nomlar.
+        self.names = ['IMG_%04d.jpg' % (2001 + i) for i in range(len(WORKS))]
+        for name in self.names:
+            make_image(self.source / name)
+
+    def run_import(self, **kwargs):
+        with override_settings(MEDIA_ROOT=self.media, AUTO_TRANSLATE=False):
+            call_command('import_works', dir=str(self.source), in_order=True, **kwargs)
+
+    def test_begona_nomlar_bilan_ishlaydi(self):
+        self.run_import()
+        self.assertEqual(Work.objects.count(), len(WORKS))
+
+    def test_tartib_nomi_boyicha_saralanadi(self):
+        self.run_import()
+        for index, item in enumerate(WORKS):
+            with self.subTest(work=item['slug']):
+                work = Work.objects.get(slug=item['slug'])
+                self.assertIn(self.names[index].rsplit('.', 1)[0], work.image.name)
+
+    def test_rasm_kam_bolsa_qolgani_otkazib_yuboriladi(self):
+        for name in self.names[3:]:
+            (self.source / name).unlink()
+        self.run_import()
+        self.assertEqual(Work.objects.count(), 3)
+
+    def test_bosh_papka_tushunarli_xato(self):
+        for name in self.names:
+            (self.source / name).unlink()
+        with self.assertRaises(CommandError):
+            self.run_import()
+
+    def test_qayta_ishga_tushirsa_nusxalanmaydi(self):
+        for _ in range(3):
+            self.run_import()
+        files = list((self.media / 'works').glob('*'))
+        self.assertEqual(len(files), len(WORKS), [f.name for f in files])

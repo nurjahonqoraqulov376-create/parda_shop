@@ -142,6 +142,12 @@ class Command(BaseCommand):
             '--dry-run', action='store_true',
             help='Hech narsa saqlanmaydi, faqat nima bo‘lishini ko‘rsatadi.',
         )
+        parser.add_argument(
+            '--in-order', action='store_true',
+            help='Fayl nomlariga qaramaydi: papkadagi rasmlarni nomi bo‘yicha '
+                 'saralab, ro‘yxat tartibida biriktiradi. Avval --dry-run bilan '
+                 'moslikni tekshiring.',
+        )
 
     def find_image(self, folder, stem):
         for suffix in IMAGE_SUFFIXES:
@@ -149,6 +155,14 @@ class Command(BaseCommand):
                 if candidate.exists():
                     return candidate
         return None
+
+    def images_in_order(self, folder):
+        """Papkadagi barcha rasmlar, nomi bo'yicha saralangan."""
+        return sorted(
+            (path for path in folder.iterdir()
+             if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES),
+            key=lambda path: path.name.lower(),
+        )
 
     def handle(self, *args, **options):
         folder = Path(options['dir']).expanduser()
@@ -158,8 +172,18 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
         created = updated = missing = 0
 
-        for item in WORKS:
-            image_path = self.find_image(folder, item['file'])
+        ordered = self.images_in_order(folder) if options['in_order'] else []
+        if options['in_order']:
+            if not ordered:
+                raise CommandError('Papkada rasm topilmadi: %s' % folder)
+            self.stdout.write('Tartib bo‘yicha biriktirilmoqda '
+                              '(%d ta rasm, %d ta yozuv):' % (len(ordered), len(WORKS)))
+
+        for index, item in enumerate(WORKS):
+            if options['in_order']:
+                image_path = ordered[index] if index < len(ordered) else None
+            else:
+                image_path = self.find_image(folder, item['file'])
             if image_path is None:
                 missing += 1
                 self.stderr.write(self.style.WARNING(
