@@ -222,6 +222,14 @@ yaratish uchun: `py manage.py setup_roles`.
 Xodim bo‘lmagan foydalanuvchi login sahifasida to‘g‘ri parol kiritsa ham
 "Sizda boshqaruv paneliga ruxsat yo‘q" xatosini oladi (`accounts/forms.py`).
 
+### Kirish havolasi mehmonlarga ko‘rsatilmaydi
+
+Sarlavhadagi panel havolasi faqat kirgan xodimga chiqadi. Oddiy tashrifchi
+saytga kirganda boshqaruv paneli borligini bilmaydi — bu ochiq sahifada
+keraksiz ma’lumot. Xodimlar manzilni to‘g‘ridan-to‘g‘ri yozadi:
+`/uz/boshqaruv/kirish/`. Manzilning o‘zi ochiq qoladi.
+Tekshiruv: `pages/tests_smoke.py` → `StaffLoginHiddenTests`.
+
 ## Tillar (uz / ru)
 
 - URL prefiksi `i18n_patterns` orqali: `/uz/...` va `/ru/...`; headerdagi tugmalar
@@ -281,6 +289,14 @@ har birining nomi, qisqa va to‘liq tavsifi, narxi hamda ombordagi soni alohida
 Buyruq idempotent: qayta ishga tushirilsa yozuvlarni yangilaydi va eskirgan demo
 mahsulotlarni tozalaydi (buyurtmada ishlatilgani o‘chirilmay, nofaol qilinadi).
 Sizning qo‘lda qo‘shgan kategoriya va mahsulotlaringizga tegilmaydi.
+
+`py manage.py seed_demo --categories-only` — faqat 14 kategoriya (rasmi bilan),
+demo mahsulotlarsiz. Ishlab turgan saytni to‘ldirish uchun shu variant ishlatiladi:
+o‘ylab topilgan narx mijozni chalg‘itmasligi kerak.
+
+`py manage.py import_works` — `seed/works/` dagi 8 ta portfolio rasmini
+«Mening ishlarim» bo‘limiga yuklaydi. Yozuvlar slug bo‘yicha yangilanadi,
+takror yaratilmaydi.
 
 ## Xavfsizlik
 
@@ -501,15 +517,27 @@ Endi kirish mumkin: `https://<domen>/uz/boshqaruv/kirish/`
 
 ### 9-qadam. Kontentni to'ldirish
 
-Panelga kirib qo'shasiz. Yoki demo ma'lumot bilan boshlash uchun Shell'da:
+Serverda terminal yo'q, shuning uchun kontent **Pre-deploy Command** ga
+vaqtincha buyruq qo'shish orqali to'ldiriladi. To'ldirilgach buyruqni
+olib tashlang — aks holda har joylashtirishda qaytariladi.
 
-```bash
-python manage.py seed_demo
-```
+| Nima | Buyruq |
+|---|---|
+| Kategoriya tuzilmasi (14 ta, rasmi bilan) | `python manage.py seed_demo --categories-only` |
+| «Mening ishlarim» portfolio (8 ta) | `python manage.py import_works` |
 
-Portfolio rasmlarini yuklash uchun rasmlarni serverga qo'yish kerak —
-odatda paneldan qo'lda yuklash osonroq:
-`/uz/boshqaruv/ishlarimiz/` → **Qo'shish**.
+Ikkalasi ham rasmlarni loyihaning **`seed/`** papkasidan oladi — u git'ga
+kiritilgan, shuning uchun serverda hech narsa yuklash shart emas va Railway
+diski tozalansa ham kontent qaytadan tiklanadi.
+
+> ⚠️ **`seed_demo` ni bayroqsiz ishlatmang.** To'liq variant o'ylab
+> topilgan nom va narxli 70 ta mahsulot yaratadi. Ular namoyish uchun; ishlab
+> turgan do'konda mijoz soxta narxni ko'rib qo'ng'iroq qiladi.
+
+Mahsulotlarni panelga kirib qo'lda qo'shasiz:
+`/uz/boshqaruv/mahsulotlar/` → **Qo'shish**.
+Portfolio ham shu yerda: `/uz/boshqaruv/ishlarimiz/`.
+
 
 ### 10-qadam. Tekshirish
 
