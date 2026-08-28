@@ -202,3 +202,21 @@ class SupportWidgetTests(TestCase):
 
     def test_ingichka_aylantirgich(self):
         self.assertIn('.sc-log::-webkit-scrollbar', self.css)
+
+    def test_telefonda_ixcham_doira_tugma(self):
+        """Tugma butun kenglikni egallab, sahifa pastini to'sib turardi."""
+        mobile = self.css.split('Telefon: ixcham doira', 1)[1].split('@supports', 1)[0]
+        self.assertIn('border-radius: 50%', mobile)
+        self.assertIn('.sc-fab-text { display: none; }', mobile)
+        self.assertNotIn('width: 100%', mobile.split('.sc-panel', 1)[0])
+
+    def test_tugma_safe_area_ustida(self):
+        """iPhone pastki chizig'i tugmani bosib qo'ymasin."""
+        self.assertIn('calc(18px + env(safe-area-inset-bottom))', self.css)
+
+    def test_yozishma_foni_bor(self):
+        log = self.css.split('.sc-log {', 1)[1].split('}', 1)[0]
+        self.assertIn('background-image', log)
+        # Fon tokenlardan olinadi — tungi rejimda o'zi moslashadi.
+        self.assertIn('var(--accent-soft)', log)
+        self.assertIn('var(--line)', log)
