@@ -24,108 +24,146 @@ IMAGE_SUFFIXES = ('.jpg', '.jpeg', '.png', '.webp')
 # tarjima qilinadi (`TranslatableMixin`), shuning uchun bu yerda yozilmaydi.
 WORKS = [
     {
-        'file': 'mehmonxona-baxmal',
-        'slug': 'mehmonxona-baxmal-parda',
+        'file': 'photo_2026-08-26_22-11-30',
+        'slug': 'mehmonxona-jigarrang-baxmal',
         'title': 'Mehmonxona uchun jigarrang baxmal parda',
         'category': 'Baxmal parda',
-        'excerpt': 'Keng mehmonxona derazasi uchun qo‘sh qatlam: zich baxmal parda '
-                   'va yengil oq tyul.',
+        'excerpt': 'Keng mehmonxona devori bo‘ylab: zich jigarrang baxmal va o‘t naqshli oq tyul.',
         'description': (
-            'Mehmonxonaning butun devorini egallagan keng deraza uchun tayyorlangan.\n\n'
-            'Mato: jigarrang-kulrang tusdagi zich baxmal. Ichki qatlam — naqshli oq tyul, '
-            'u kunduzi yorug‘likni yumshatib o‘tkazadi.\n\n'
-            'Karniz: oltin rangli bezakli, shift bo‘ylab butun devor uzunligida.\n'
+            'Butun devorni egallagan keng deraza uchun tayyorlangan.\n\n'
+            'Mato: jigarrang-pushti tusdagi zich baxmal, tik burmalar bilan tikilgan.\n'
+            'Tyul: oq, pastki qismida o‘t-boshoq naqshi bor — kunduzi yorug‘likni '
+            'yumshatib o‘tkazadi.\n\n'
+            'Karniz: oltin bezakli, shift bo‘ylab butun devor uzunligida o‘rnatilgan, '
+            'ichiga nuqtali yoritgichlar joylangan.\n'
             'Ushlagich: oltin sharchali osma bezak.\n\n'
             'Parda shiftdan polgacha tushirilgan — bu xonani balandroq ko‘rsatadi.'
         ),
         'sort_order': 1,
     },
     {
-        'file': 'eshik-popukli',
-        'slug': 'eshik-popukli-bej-parda',
-        'title': 'Eshik uchun popukli bej parda',
-        'category': 'Eshik pardasi',
-        'excerpt': 'Ikki tomonga yig‘iladigan bej parda, chetlari popukli bezak bilan '
-                   'ishlangan.',
+        'file': 'photo_2026-08-17_14-24-36',
+        'slug': 'bej-kulrang-zamonaviy-parda',
+        'title': 'Bej va kulrang zamonaviy parda',
+        'category': 'Kombinatsiya parda',
+        'excerpt': 'Ikki rang birga: to‘q kulrang asos va bej yon qismlar, o‘rtasida gulli oq tyul.',
         'description': (
-            'Xonalar orasidagi eshik uchun tayyorlangan bezakli parda.\n\n'
-            'Mato: bej-kulrang baxmal, tik burmalar bilan tikilgan.\n\n'
-            'Bezak: chetlari bo‘ylab oltin uchli oq popuklar — pardaning asosiy '
-            'ko‘rki shu.\n\n'
-            'Ushlagich: devorga o‘rnatilgan oltin gulli ilgak va uzun popukli arqon.\n\n'
-            'Ikki tomonga simmetrik yig‘ilganda eshik ustida uchburchak ochilma hosil '
-            'bo‘ladi.'
+            'Katta mehmonxonaning bir necha derazasi bir xil uslubda bezatilgan.\n\n'
+            'Mato: to‘q kulrang asosiy parda va bej rangli yon qismlar. Bej qism '
+            'yuqoridan qiya yig‘ilgan — bu deraza balandligini cho‘zib ko‘rsatadi.\n'
+            'Tyul: oq, o‘rtasidan gul-novda naqshi o‘tgan.\n\n'
+            'Karniz: oltin bezakli, shift plintusi bilan uyg‘un.\n'
+            'Ushlagich: metall ilgak va kumush sharchali osma bezak.\n\n'
+            'Neytral ranglar tufayli mebel almashsa ham parda o‘z o‘rnida qoladi.'
         ),
         'sort_order': 2,
     },
     {
-        'file': 'kok-jakkard',
-        'slug': 'kok-jakkard-parda',
-        'title': 'To‘q ko‘k naqshli jakkard parda',
-        'category': 'Jakkard parda',
-        'excerpt': 'To‘q ko‘k jakkard mato, oq va ko‘k popuklar bilan bezatilgan.',
+        'file': 'photo_2026-08-14_14-25-46 (2)',
+        'slug': 'kok-krem-qosh-rangli-parda',
+        'title': 'To‘q ko‘k va krem qo‘sh rangli parda',
+        'category': 'Kombinatsiya parda',
+        'excerpt': 'To‘q ko‘k naqshli mato va krem yon qismlar, oralig‘ida naqshli oq tyul.',
         'description': (
-            'To‘q ko‘k rangdagi jakkard parda — mato ustida oq mayin naqsh bor.\n\n'
-            'Osma turi: halqali (lyuvers) — oltin halqalar karnizga o‘tkazilgan, '
-            'burmalar bir tekis tushadi.\n\n'
-            'Bezak: chetlari bo‘ylab ko‘k va oq popuklar navbat bilan tikilgan.\n\n'
-            'Orqa qatlam: naqshli bej tyul.\n\n'
-            'To‘q rang xonani quyoshdan yaxshi to‘saydi — yotoqxona uchun mos.'
+            'Mehmonxona derazasi uchun ikki rangli yechim.\n\n'
+            'Mato: to‘q ko‘k naqshli asosiy parda, chetlarida krem rangli qiya '
+            'yig‘ilgan qismlar.\n'
+            'Tyul: oq, ikki qator naqshli tasma bilan bezatilgan.\n\n'
+            'Karniz: oltin bezakli, ikki pog‘onali shiftga o‘rnatilgan — shift '
+            'chetidagi LED yoritgich pardani yumshoq yoritadi.\n'
+            'Ushlagich: kumush popukli osma bezak.\n\n'
+            'To‘q ko‘k rang quyoshni yaxshi to‘sadi, krem qism esa xonani '
+            'og‘irlashtirmaydi.'
         ),
         'sort_order': 3,
     },
     {
-        'file': 'bej-kulrang',
-        'slug': 'bej-kulrang-qosh-parda',
-        'title': 'Bej va kulrang qo‘sh rangli parda',
-        'category': 'Kombinatsiya parda',
-        'excerpt': 'Ikki rang birga: chetlari bej, o‘rtasi kulrang, oralig‘ida gulli '
-                   'oq tyul.',
+        'file': 'photo_2026-08-14_14-14-50 (3)',
+        'slug': 'boshoqli-tyul-bej-parda',
+        'title': 'Boshoqli tyul bilan bej-kulrang parda',
+        'category': 'Qo‘sh qatlam parda',
+        'excerpt': 'Zich bej-kulrang parda va boshoq naqshli oq tyul — bir-birini to‘ldiruvchi juftlik.',
         'description': (
-            'Ikki rangli kombinatsiya: to‘q kulrang asosiy parda va bej rangli '
-            'yon qismlar.\n\n'
-            'Tyul: oq, o‘rtasidan gul-novda naqshi o‘tgan — yorug‘lik tushganda naqsh '
-            'yaqqol ko‘rinadi.\n\n'
-            'Karniz: oltin bezakli, shift plintusi bilan uyg‘un.\n'
-            'Ushlagich: metall ilgak va kumush sharchali osma bezak.\n\n'
-            'Bej qism yuqoridan pastga qiya yig‘ilgan — bu deraza balandligini '
-            'cho‘zib ko‘rsatadi.'
+            'Yotoqxona derazasi uchun ikki qatlamli to‘plam.\n\n'
+            'Mato: bej-kulrang, mayin tik chiziqli. Ikki tomonga qiya yig‘ilgan.\n'
+            'Tyul: oq, ustki va pastki qismida boshoq naqshi — yorug‘lik tushganda '
+            'naqsh yaqqol ko‘rinadi.\n\n'
+            'Karniz: oltin bezakli, deraza kengligidan kengroq o‘rnatilgan.\n'
+            'Ushlagich: oltin uchli popukli arqon.\n\n'
+            'Parda yig‘ilganda deraza to‘liq ochiladi, yopilganda esa yorug‘lik '
+            'butunlay to‘siladi.'
         ),
         'sort_order': 4,
     },
     {
-        'file': 'yotoqxona-tyul',
-        'slug': 'yotoqxona-gipyur-tyul',
-        'title': 'Yotoqxona uchun oq gipyur tyul',
+        'file': 'photo_2026-08-17_14-26-47',
+        'slug': 'yotoqxona-oq-gipyur-toplam',
+        'title': 'Yotoqxona uchun oq gipyur to‘plam',
         'category': 'Tyul parda',
-        'excerpt': 'Yengil oq gipyur tyul — bitta xonadagi deraza va eshik uchun '
-                   'bir uslubda.',
+        'excerpt': 'Bitta xonadagi deraza va eshik bir xil oq gipyur matoda bezatilgan.',
         'description': (
-            'Yotoqxonaning ikki ochilmasi — deraza va eshik — bir xil matoda '
-            'bezatilgan.\n\n'
-            'Mato: oq gipyur tyul, chetlari bo‘ylab barg naqshi bor.\n\n'
-            'Karniz: oltin bezakli, ikkala ochilma uchun alohida o‘rnatilgan.\n'
-            'Ushlagich: oltin uchli popukli arqon.\n\n'
-            'Yengil mato xonani yopiq qilib qo‘ymaydi — kichik yotoqxona uchun ayni '
-            'muddao.'
+            'Yotoqxonaning ikki ochilmasi — deraza va eshik — bir uslubda ishlangan.\n\n'
+            'Mato: oq gipyur tyul, chetlari bo‘ylab barg naqshi bor. Derazadagi '
+            'ichki qatlamda oltin rangli to‘r naqsh.\n\n'
+            'Yig‘ilishi: ikkala tomondan yuqoriga qarab tortilgan — xonaga yumshoq '
+            'yorug‘lik tushadi.\n\n'
+            'Karniz: oltin bezakli, har bir ochilma uchun alohida.\n'
+            'Ushlagich: oltin uchli popuk.\n\n'
+            'Yengil mato xonani yopiq qilib qo‘ymaydi — kichik yotoqxona uchun '
+            'ayni muddao.'
         ),
         'sort_order': 5,
     },
     {
-        'file': 'eshik-bej',
-        'slug': 'eshik-bej-parda',
-        'title': 'Xona eshigi uchun bej parda',
+        'file': 'photo_2026-08-14_14-25-46',
+        'slug': 'eshik-kok-baxmal-parda',
+        'title': 'Eshik uchun to‘q ko‘k baxmal parda',
+        'category': 'Eshik pardasi',
+        'excerpt': 'To‘q ko‘k baxmal, chetlari oq popuklar bilan bezatilgan eshik pardasi.',
+        'description': (
+            'Xonalar orasidagi eshik uchun tayyorlangan.\n\n'
+            'Mato: to‘q ko‘k baxmal (shenil), mayda tik burmalar bilan tikilgan.\n\n'
+            'Bezak: chetlari bo‘ylab oq popuklar tikilgan — to‘q fonda yaqqol '
+            'ajralib turadi.\n\n'
+            'Karniz: oltin bezakli, eshik ustidan kengroq o‘rnatilgan.\n'
+            'Ushlagich: oq popukli arqon.\n\n'
+            'Ikki tomonga simmetrik yig‘ilganda eshik ustida uchburchak ochilma '
+            'hosil bo‘ladi.'
+        ),
+        'sort_order': 6,
+    },
+    {
+        'file': 'photo_2026-08-17_14-24-35 (2)',
+        'slug': 'balkon-eshigi-kulrang-parda',
+        'title': 'Balkon eshigi uchun kulrang parda',
+        'category': 'Eshik pardasi',
+        'excerpt': 'Kulrang baxmal, chetlari kumush marjonli popuk bezak bilan ishlangan.',
+        'description': (
+            'Balkonga chiqadigan eshik uchun tayyorlangan.\n\n'
+            'Mato: kulrang-lilak baxmal, zich va og‘ir — sovuqni ham to‘sadi.\n\n'
+            'Bezak: chetlari bo‘ylab kumush marjonli popuklar tushirilgan.\n\n'
+            'Karniz: oltin-kumush bezakli, shiftga yaqin o‘rnatilgan.\n'
+            'Ushlagich: naqshli metall ilgak va yirik kumush popuk.\n\n'
+            'Ikki tomonga yig‘ilganda eshikka to‘siqsiz chiqiladi.'
+        ),
+        'sort_order': 7,
+    },
+    {
+        'file': 'photo_2026-08-14_14-14-50',
+        'slug': 'kirish-eshigi-bej-parda',
+        'title': 'Kirish eshigi uchun bej parda',
         'category': 'Eshik pardasi',
         'excerpt': 'Tik burmali bej parda, o‘rtasidan oltin popukli bezak tushirilgan.',
         'description': (
             'Kirish eshigi uchun tayyorlangan parda.\n\n'
             'Mato: bej-kulrang, mayda tik burmalar bilan tikilgan.\n\n'
-            'Bezak: o‘rtadan pastga qarab oltin uchli popuklar tushirilgan.\n\n'
+            'Bezak: o‘rtadan pastga qarab oltin uchli popuklar tushirilgan — eshik '
+            'yopiq turganda ham ko‘rinib turadi.\n\n'
             'Karniz: oltin bezakli, eshik kengligiga moslab o‘rnatilgan.\n'
-            'Ushlagich: gulli oltin ilgak va popukli arqon.\n\n'
-            'Eshikni butunlay yopadi — sovuq va shovqinni ham kamaytiradi.'
+            'Ushlagich: gulli oltin ilgak va uzun popukli arqon.\n\n'
+            'Eshikni butunlay yopadi — sovuq va shovqinni kamaytiradi.'
         ),
-        'sort_order': 6,
+        'sort_order': 8,
     },
 ]
 

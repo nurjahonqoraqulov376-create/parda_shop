@@ -9,9 +9,12 @@ Misollar:
 from django.core.management.base import BaseCommand, CommandError
 
 from catalog.models import Category, Product
-from pages.models import Advantage, Article, Banner, ContentBlock, FaqItem, Service, SiteSettings
+from pages.models import (
+    Advantage, Article, Banner, ContentBlock, FaqItem, Service, SiteSettings, Work,
+)
 
-MODELS = [Banner, Advantage, FaqItem, Service, Article, ContentBlock, SiteSettings, Category, Product]
+MODELS = [Banner, Advantage, FaqItem, Service, Article, Work, ContentBlock,
+          SiteSettings, Category, Product]
 BY_NAME = {model.__name__.lower(): model for model in MODELS}
 
 
