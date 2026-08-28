@@ -42,9 +42,22 @@ class ProcfileTests(SimpleTestCase):
         """Railway portni o‘zi beradi — qotirib yozilsa ilova ochilmaydi."""
         self.assertIn('$PORT', self.text)
 
-    def test_migratsiya_release_da_bajariladi(self):
-        self.assertIn('release:', self.text)
-        self.assertIn('migrate', self.text)
+    def test_release_qatori_yoq(self):
+        """`release:` Nixpacks tomonidan QURISH bosqichiga qo‘shiladi.
+
+        U yerda Railway'ning ichki tarmog‘i hali yo‘q, shuning uchun
+        `postgres.railway.internal` topilmaydi va qurish
+        «failed to resolve host» bilan to‘xtaydi. Migratsiyalar Railway'ning
+        Pre-deploy Command sozlamasi orqali, ishlash paytida bajariladi.
+        """
+        for line in self.text.splitlines():
+            line = line.strip()
+            if line.startswith('#'):
+                continue
+            self.assertFalse(
+                line.startswith('release:'),
+                'Procfile da `release:` bo‘lmasligi kerak — qurish paytida baza yo‘q',
+            )
 
 
 class StaticFilesTests(SimpleTestCase):

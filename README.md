@@ -452,13 +452,21 @@ chiqadi. Shu domen `ALLOWED_HOSTS` ga o'zi qo'shiladi.
 
 **Deployments** → oxirgisining yonidagi uch nuqta → **Redeploy**
 
-Endi qurish muvaffaqiyatli o'tishi kerak. Jarayonda avtomatik bajariladi:
+Buyruqlar Railway'ning **Settings** bo'limida qo'lda yoziladi
+(`railway.json` 2026-08-28 dan keyingi yangi xizmatlarda ishlamaydi):
 
-1. `pip install -r requirements.txt`
-2. `python manage.py collectstatic --noinput` — css/js yig'iladi
-3. `python manage.py migrate --noinput` — baza jadvallari
-4. `python manage.py setup_roles` — Support / Menejer / Administrator guruhlari
-5. `gunicorn parda_shop.wsgi` — server ishga tushadi
+| Qayerda | Nima yoziladi |
+|---|---|
+| Settings → Build → **Custom Build Command** | `python manage.py collectstatic --noinput` |
+| Settings → Deploy → **Custom Start Command** | `gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 3 --timeout 60 --access-logfile - --error-logfile -` |
+| Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles` |
+
+> ⚠️ **Migratsiyani `Procfile` ning `release:` qatoriga YOZMANG.** Nixpacks
+> uni QURISH bosqichiga qo'shadi, u yerda esa Railway'ning ichki tarmog'i hali
+> yo'q — `postgres.railway.internal` topilmaydi va qurish
+> «failed to resolve host» xatosi bilan to'xtaydi. Migratsiya faqat
+> **Pre-deploy Command** da bo'lishi kerak: u ishlash paytida bajariladi va
+> bazaga ulana oladi.
 
 ### 8-qadam. Birinchi administrator
 
