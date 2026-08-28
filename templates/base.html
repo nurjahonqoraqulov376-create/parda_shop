@@ -79,9 +79,13 @@
           {% csrf_token %}
           <button class="header-link" type="submit">{% t "nav.logout" %}</button>
         </form>
-      {% else %}
-        <a class="button ghost small" href="{% url 'dashboard:login' %}">{% t "nav.login" %}</a>
       {% endif %}
+      {% comment %}
+        Mehmonga «Kirish» tugmasi ko'rsatilmaydi: boshqaruv paneli faqat
+        xodimlar uchun va uning borligini har bir tashrifchiga bildirish
+        shart emas. Xodimlar /boshqaruv/kirish/ manziliga to'g'ridan-to'g'ri
+        kiradi.
+      {% endcomment %}
       <a class="cart-link" href="{% url 'orders:cart_detail' %}">
         <span class="cart-icon">🛒</span>
         <span class="cart-meta">

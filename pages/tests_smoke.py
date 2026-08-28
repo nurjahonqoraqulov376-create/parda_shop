@@ -236,3 +236,46 @@ class HostileInputTests(TestCase):
         for path in ('/uz/savat/qoshish/1/', '/uz/savat/ochirish/1/', '/uz/sorov/'):
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 405)
+
+
+@NO_NETWORK
+class StaffLoginHiddenTests(TestCase):
+    """Boshqaruv paneli borligi oddiy tashrifchiga bildirilmaydi.
+
+    Ilgari sarlavhada har bir mehmonga «Kirish» tugmasi turardi va saytga
+    kirgan odam darrov xodimlar paneli borligini ko‘rardi. Panel manzili
+    o‘zi yopiq bo‘lsa ham, uni ko‘rsatib turishning hojati yo‘q.
+    """
+
+    def setUp(self):
+        self.login_url = reverse('dashboard:login')
+
+    def test_bosh_sahifada_kirish_havolasi_yoq(self):
+        html = self.client.get('/uz/').content.decode()
+        self.assertNotIn(self.login_url, html)
+
+    def test_ikkala_tilda_ham_yoq(self):
+        for lang in LANGS:
+            with self.subTest(lang=lang):
+                html = self.client.get('/%s/' % lang).content.decode()
+                self.assertNotIn('/boshqaruv/kirish/', html)
+
+    def test_ommaviy_sahifalarning_hech_birida_yoq(self):
+        paths = ['/uz/', '/uz/katalog/', '/uz/ishlarimiz/', '/uz/aloqa/', '/uz/savat/']
+        for path in paths:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertNotIn('/boshqaruv/kirish/', response.content.decode())
+
+    def test_xodimga_panel_havolasi_korinadi(self):
+        """Yashirish faqat mehmonlar uchun — xodim panelga o‘ta olishi kerak."""
+        user = User.objects.create_user('menejer', password='Parol12345!')
+        Profile.objects.create(user=user, role=Profile.ROLE_MANAGER)
+        self.client.force_login(user)
+        html = self.client.get('/uz/').content.decode()
+        self.assertIn(reverse('dashboard:overview'), html)
+
+    def test_kirish_sahifasi_ochiq_qoladi(self):
+        """Havola yashirilgani bilan manzil ishlashdan to‘xtamaydi."""
+        self.assertEqual(self.client.get(self.login_url).status_code, 200)
