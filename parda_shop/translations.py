@@ -140,7 +140,7 @@ UI = {
         'lead.error': 'Iltimos, ism va telefon raqamini to‘g‘ri kiriting.',
 
         # --- suhbat (support) ---
-        'support.title': 'Yordam kerakmi?',
+        'support.title': 'Support',
         'support.subtitle': 'Savolingizni yozing — darhol javob beramiz',
         'support.open': 'Suhbat',
         'support.placeholder': 'Xabaringizni yozing...',
@@ -370,7 +370,7 @@ UI = {
         'lead.error': 'Пожалуйста, укажите имя и корректный номер телефона.',
 
         # --- чат (support) ---
-        'support.title': 'Нужна помощь?',
+        'support.title': 'Support',
         'support.subtitle': 'Напишите вопрос — ответим сразу',
         'support.open': 'Чат',
         'support.placeholder': 'Ваше сообщение...',
