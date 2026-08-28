@@ -1,5 +1,9 @@
 """Demo kontent bilan bazani to'ldiradi (bir necha marta ishga tushirish xavfsiz)."""
 
+from pathlib import Path
+
+from django.conf import settings
+from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Q
@@ -12,6 +16,10 @@ from pages.models import (
 from parda_shop import mt
 
 CONTACT_PHONE = '+998 99 986 71 99'
+
+# Kategoriya rasmlari kod bilan birga keladi: serverdagi `media/` disk
+# tozalanishi mumkin, `seed/` esa har joylashtirishda qaytadan yetkaziladi.
+SEED_CATEGORY_DIR = Path(settings.BASE_DIR) / 'seed' / 'categories'
 
 # (slug, nomi, nomi_ru, ikon, bosh sahifada, tavsif, tavsif_ru)
 CATEGORIES = [
@@ -819,9 +827,27 @@ CONTENT_BLOCKS = [
 class Command(BaseCommand):
     help = 'Sayt uchun demo kategoriya, mahsulot va kontent yaratadi.'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--categories-only', action='store_true',
+            help='Faqat kategoriyalar (va ularning rasmlari) yaratiladi. '
+                 'Demo mahsulotlar, maqolalar va sharhlar yaratilmaydi — '
+                 'haqiqiy saytda o‘ylab topilgan narxlar turmasligi uchun.',
+        )
+
     @transaction.atomic
     def handle(self, *args, **options):
         # Demo kontentda ruscha matnlar qo'lda yozilgan — avtomatik tarjima ustidan yozmasin.
+        if options.get('categories_only'):
+            with mt.suspend():
+                categories = self._categories()
+                attached = self._category_images(categories)
+            self.stdout.write(self.style.SUCCESS(
+                'Tayyor: %d kategoriya, %d tasiga rasm biriktirildi.'
+                % (len(categories), attached)
+            ))
+            return
+
         with mt.suspend():
             ensure_roles()
             self._settings()
@@ -919,6 +945,26 @@ class Command(BaseCommand):
             )
             categories[slug] = category
         return categories
+
+    def _category_images(self, categories):
+        """`seed/categories/<slug>.jpg` bo'lsa kategoriyaga biriktiradi.
+
+        Rasmi allaqachon bor kategoriya qayta yozilmaydi — paneldan
+        yuklangan rasm joylashtirishda yo'qolib ketmasligi kerak.
+        """
+        attached = 0
+        for slug, category in categories.items():
+            if category.image:
+                continue
+            for suffix in ('.jpg', '.jpeg', '.png', '.webp'):
+                path = SEED_CATEGORY_DIR / (slug + suffix)
+                if not path.exists():
+                    continue
+                with path.open('rb') as handle:
+                    category.image.save(path.name, File(handle), save=True)
+                attached += 1
+                break
+        return attached
 
     def _products(self, categories):
         created = 0

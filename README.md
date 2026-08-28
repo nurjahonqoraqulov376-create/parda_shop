@@ -458,7 +458,7 @@ Buyruqlar Railway'ning **Settings** bo'limida qo'lda yoziladi
 | Qayerda | Nima yoziladi |
 |---|---|
 | Settings → Build → **Custom Build Command** | `python manage.py collectstatic --noinput` |
-| Settings → Deploy → **Custom Start Command** | `gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 3 --timeout 60 --access-logfile - --error-logfile -` |
+| Settings → Deploy → **Custom Start Command** | `gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -` |
 | Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles && python manage.py ensure_admin` |
 
 > ⚠️ **Migratsiyani `Procfile` ning `release:` qatoriga YOZMANG.** Nixpacks

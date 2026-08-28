@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+from io import StringIO
 from pathlib import Path
 
 from django.core.management import call_command
@@ -138,3 +139,57 @@ class InOrderModeTests(TestCase):
             self.run_import()
         files = list((self.media / 'works').glob('*'))
         self.assertEqual(len(files), len(WORKS), [f.name for f in files])
+
+
+class SeedFolderTests(TestCase):
+    """`seed/works/` — portfolio rasmlarining doimiy manbasi.
+
+    Serverdagi `media/` diski tozalanishi mumkin (Railway'da u alohida
+    ulanadigan disk). Rasmlar kod bilan birga kelsa, `import_works` ni
+    ishga tushirish kifoya — portfolio qaytadan tiklanadi. Shu sababli
+    bu papkaning to‘liqligini test qo‘riqlaydi.
+    """
+
+    def setUp(self):
+        from pages.management.commands.import_works import DEFAULT_DIR
+        self.folder = DEFAULT_DIR
+
+    def test_papka_mavjud(self):
+        self.assertTrue(self.folder.is_dir(), 'seed/works/ papkasi yo‘q: %s' % self.folder)
+
+    def test_har_bir_ish_uchun_rasm_bor(self):
+        """Yangi ish qo‘shilib, rasmi commit qilinmasa shu test ushlaydi."""
+        from pages.management.commands.import_works import Command
+        command = Command()
+        for item in WORKS:
+            with self.subTest(work=item['slug']):
+                self.assertIsNotNone(
+                    command.find_image(self.folder, item['file']),
+                    'rasm topilmadi: %s' % item['file'],
+                )
+
+    def test_dir_korsatilmasa_seed_ishlatiladi(self):
+        out = StringIO()
+        call_command('import_works', '--dry-run', stdout=out, stderr=StringIO())
+        self.assertIn('Rasmi topilmadi: 0', out.getvalue())
+
+
+class StemVariantsTests(TestCase):
+    """Brauzer «photo (2).jpg» deydi, Django «photo_2.jpg» deb saqlaydi."""
+
+    def variants(self, stem):
+        from pages.management.commands.import_works import Command
+        return Command().stem_variants(stem)
+
+    def test_qavsli_raqam_pastki_chiziqqa_aylanadi(self):
+        self.assertEqual(self.variants('photo (2)'), ['photo (2)', 'photo_2'])
+
+    def test_probelsiz_qavs_ham_tanildi(self):
+        self.assertIn('rasm_3', self.variants('rasm(3)'))
+
+    def test_oddiy_nom_ozgarmaydi(self):
+        self.assertEqual(self.variants('photo_2026-08-14'), ['photo_2026-08-14'])
+
+    def test_ortasidagi_qavsga_tegilmaydi(self):
+        """Faqat nom oxiridagi «(N)» almashtiriladi."""
+        self.assertEqual(self.variants('a (2) b'), ['a (2) b'])

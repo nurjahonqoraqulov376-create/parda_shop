@@ -1,7 +1,12 @@
 """Portfolio rasmlarini «Mening ishlarim» bo'limiga yuklaydi.
 
 Ishlatish:
-    py manage.py import_works --dir "C:\\Users\\Админ\\Desktop\\parda-rasmlar"
+    py manage.py import_works                      # repodagi seed/works/ dan
+    py manage.py import_works --dir "D:\rasmlar"  # boshqa papkadan
+
+Sukut bo'lgan papka — loyihaning `seed/works/` si. U git'ga kiritilgan,
+shuning uchun buyruq SERVERDA ham ishlaydi: portfolio disk tozalansa ham
+qaytadan tiklanadi.
 
 Papkadagi fayllar quyidagi nomlar bilan bo'lishi kerak (kengaytmasi ixtiyoriy:
 .jpg, .jpeg, .png). Har bir nom uchun sarlavha, turi va tavsif shu faylda
@@ -11,14 +16,20 @@ Buyruq qayta ishga tushirilsa yozuvlarni yangilaydi (slug bo'yicha), takror
 yaratmaydi.
 """
 
+import re
 from pathlib import Path
 
+from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 
 from pages.models import Work
 
 IMAGE_SUFFIXES = ('.jpg', '.jpeg', '.png', '.webp')
+
+# Rasmlar loyiha ichida ham saqlanadi: serverdagi `media/` disk tozalanishi
+# mumkin, `seed/` esa kod bilan birga keladi.
+DEFAULT_DIR = Path(settings.BASE_DIR) / 'seed' / 'works'
 
 # Fayl nomi -> yozuv ma'lumotlari. Ruscha maydonlar saqlashda avtomatik
 # tarjima qilinadi (`TranslatableMixin`), shuning uchun bu yerda yozilmaydi.
@@ -173,8 +184,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--dir', required=True,
-            help='Rasmlar turgan papka (fayl nomlari quyida ko‘rsatilgan).',
+            '--dir', default=str(DEFAULT_DIR),
+            help='Rasmlar turgan papka. Sukut bo‘yicha: seed/works/',
         )
         parser.add_argument(
             '--dry-run', action='store_true',
@@ -187,11 +198,26 @@ class Command(BaseCommand):
                  'moslikni tekshiring.',
         )
 
+    def stem_variants(self, stem):
+        """Bir xil rasmning turli nomlari.
+
+        Brauzer yuklab olganda ikkinchi nusxaga «photo (2).jpg» deb nom beradi,
+        Django esa saqlaganda uni «photo_2.jpg» ga aylantiradi. Ikkalasini ham
+        tanishimiz kerak, aks holda papka almashganda rasm «topilmadi» bo'ladi.
+        """
+        variants = [stem]
+        converted = re.sub(r'\s*\((\d+)\)$', r'_\1', stem)
+        if converted != stem:
+            variants.append(converted)
+        return variants
+
     def find_image(self, folder, stem):
-        for suffix in IMAGE_SUFFIXES:
-            for candidate in (folder / (stem + suffix), folder / (stem + suffix.upper())):
-                if candidate.exists():
-                    return candidate
+        for candidate_stem in self.stem_variants(stem):
+            for suffix in IMAGE_SUFFIXES:
+                for candidate in (folder / (candidate_stem + suffix),
+                                  folder / (candidate_stem + suffix.upper())):
+                    if candidate.exists():
+                        return candidate
         return None
 
     def images_in_order(self, folder):

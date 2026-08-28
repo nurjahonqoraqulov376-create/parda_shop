@@ -2,9 +2,11 @@
 
 from decimal import Decimal
 
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from catalog.management.commands.seed_demo import CATEGORIES, SEED_CATEGORY_DIR
 from catalog.models import Category, Product
 
 
@@ -85,3 +87,53 @@ class ProductModelTests(TestCase):
             price=Decimal('1000'), stock=0,
         )
         self.assertFalse(product.in_stock)
+
+
+@override_settings(AUTO_TRANSLATE=False)
+class SeedCategoriesOnlyTests(TestCase):
+    """`seed_demo --categories-only` — haqiqiy saytni to‘ldirish uchun.
+
+    To‘liq `seed_demo` o‘ylab topilgan nom va narxli 70 ta mahsulot
+    yaratadi. Ular ishlab turgan do‘konda turishi mumkin emas: mijoz
+    soxta narxni ko‘rib qo‘ng‘iroq qiladi. Shu bayroq bilan faqat
+    kategoriya tuzilmasi yaratiladi.
+    """
+
+    def run_cmd(self):
+        from io import StringIO
+        out = StringIO()
+        call_command('seed_demo', '--categories-only', stdout=out)
+        return out.getvalue()
+
+    def test_kategoriyalar_yaratiladi(self):
+        self.run_cmd()
+        self.assertEqual(Category.objects.count(), len(CATEGORIES))
+
+    def test_mahsulot_yaratilmaydi(self):
+        self.run_cmd()
+        self.assertEqual(Product.objects.count(), 0)
+
+    def test_ruscha_nomlar_toldiriladi(self):
+        self.run_cmd()
+        self.assertFalse(Category.objects.filter(name_ru='').exists())
+
+    def test_qayta_ishga_tushirsa_takrorlanmaydi(self):
+        self.run_cmd()
+        self.run_cmd()
+        self.assertEqual(Category.objects.count(), len(CATEGORIES))
+
+    def test_har_bir_kategoriya_uchun_seed_rasmi_bor(self):
+        """Rasmi yo‘q kategoriya katalogda bo‘sh katak bo‘lib turadi."""
+        for slug in (item[0] for item in CATEGORIES):
+            with self.subTest(slug=slug):
+                found = any((SEED_CATEGORY_DIR / (slug + suffix)).exists()
+                            for suffix in ('.jpg', '.jpeg', '.png', '.webp'))
+                self.assertTrue(found, 'seed/categories/%s.jpg yo‘q' % slug)
+
+    def test_mavjud_rasm_ustidan_yozilmaydi(self):
+        """Paneldan yuklangan rasm joylashtirishda yo‘qolmasligi kerak."""
+        category = Category.objects.create(
+            name='Plisse jalyuzi', slug='plisse-jalyuzi', image='categories/qolda.jpg')
+        self.run_cmd()
+        category.refresh_from_db()
+        self.assertEqual(category.image.name, 'categories/qolda.jpg')

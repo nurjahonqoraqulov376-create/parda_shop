@@ -8,4 +8,4 @@
 #   Settings -> Deploy -> Pre-deploy Command
 #   python manage.py migrate --noinput && python manage.py setup_roles
 # U ishlash paytida bajariladi va bazaga ulana oladi.
-web: gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 3 --timeout 60 --access-logfile - --error-logfile -
+web: gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -
