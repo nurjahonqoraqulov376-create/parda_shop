@@ -459,7 +459,7 @@ Buyruqlar Railway'ning **Settings** bo'limida qo'lda yoziladi
 |---|---|
 | Settings → Build → **Custom Build Command** | `python manage.py collectstatic --noinput` |
 | Settings → Deploy → **Custom Start Command** | `gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 3 --timeout 60 --access-logfile - --error-logfile -` |
-| Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles` |
+| Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles && python manage.py ensure_admin` |
 
 > ⚠️ **Migratsiyani `Procfile` ning `release:` qatoriga YOZMANG.** Nixpacks
 > uni QURISH bosqichiga qo'shadi, u yerda esa Railway'ning ichki tarmog'i hali
@@ -470,15 +470,34 @@ Buyruqlar Railway'ning **Settings** bo'limida qo'lda yoziladi
 
 ### 8-qadam. Birinchi administrator
 
-Railway'da terminal ochish: xizmat sahifasida uch nuqta → **Shell**
-(yoki kompyuterdan `railway run` orqali).
+Railway'da brauzerdan terminal ochib bo‘lmaydi (**Shell** SSH kalit so‘raydi),
+shuning uchun administrator hisobi **muhit o‘zgaruvchilari** orqali yaratiladi.
+Buning uchun `ensure_admin` buyrug‘i bor — u 7-qadamdagi **Pre-deploy Command**
+ichida turadi.
 
-```bash
-python manage.py createsuperuser
+**Variables** bo‘limiga ikkita o‘zgaruvchi qo‘shing:
+
+| Nomi | Qiymati |
+|---|---|
+| `ADMIN_USERNAME` | o‘zingiz tanlagan login |
+| `ADMIN_PASSWORD` | kuchli parol (kamida 12 belgi) |
+
+Saqlaganingizda Railway o‘zi qayta joylashtiradi. Loglarda quyidagi qator
+ko‘rinadi:
+
+```
+ensure_admin: <login> — yaratildi (administrator)
 ```
 
-Login va parol o'ylab, kiriting. Keyin saytda:
-`https://<domen>/uz/boshqaruv/kirish/`
+Endi kirish mumkin: `https://<domen>/uz/boshqaruv/kirish/`
+
+> 🔒 **Kirgandan keyin `ADMIN_PASSWORD` ni Variables'dan O‘CHIRIB TASHLANG.**
+> Parol o‘zgaruvchilarda ochiq matnda turishi kerak emas — u bazaga
+> shifrlangan holda saqlanib bo‘ldi. `ensure_admin` o‘zgaruvchilar yo‘q
+> bo‘lsa hech narsa qilmaydi, shuning uchun uni Pre-deploy'da qoldirish xavfsiz.
+>
+> Parolni keyin almashtirish uchun `ADMIN_PASSWORD` ni yangi qiymat bilan
+> qaytadan qo‘ying — buyruq mavjud hisobning parolini yangilaydi.
 
 ### 9-qadam. Kontentni to'ldirish
 

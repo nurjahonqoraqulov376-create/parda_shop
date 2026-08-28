@@ -118,3 +118,55 @@ class ManagementCommandsSmokeTests(TestCase):
         """Tarmoqqa chiqmasin — `AUTO_TRANSLATE=False` bilan."""
         with override_settings(AUTO_TRANSLATE=False):
             call_command('translate_content', '--missing', stdout=StringIO(), stderr=StringIO())
+
+
+class EnsureAdminCommandTests(TestCase):
+    """`ensure_admin` — serverda administrator hisobini yaratadi."""
+
+    def run_cmd(self, **env):
+        import os
+        from unittest.mock import patch
+        with patch.dict(os.environ, env, clear=False):
+            out = StringIO()
+            call_command('ensure_admin', stdout=out)
+            return out.getvalue()
+
+    def test_ozgaruvchilarsiz_hech_narsa_qilmaydi(self):
+        """Pre-deploy'da doim qolgani uchun bo'sh holatda xato bermasligi shart."""
+        import os
+        from unittest.mock import patch
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop('ADMIN_USERNAME', None)
+            os.environ.pop('ADMIN_PASSWORD', None)
+            out = StringIO()
+            call_command('ensure_admin', stdout=out)
+        self.assertIn('o‘tkazib yuborildi', out.getvalue())
+        self.assertEqual(User.objects.count(), 0)
+
+    def test_hisob_yaratiladi(self):
+        self.run_cmd(ADMIN_USERNAME='Sevara', ADMIN_PASSWORD='juda-kuchli-parol-123')
+        user = User.objects.get(username='Sevara')
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.check_password('juda-kuchli-parol-123'))
+
+    def test_admin_roli_beriladi(self):
+        self.run_cmd(ADMIN_USERNAME='Sevara', ADMIN_PASSWORD='juda-kuchli-parol-123')
+        user = User.objects.get(username='Sevara')
+        self.assertEqual(user.profile.role, Profile.ROLE_ADMIN)
+        self.assertTrue(has_role(user, 'admin'))
+
+    def test_qayta_ishga_tushirsa_parol_yangilanadi(self):
+        self.run_cmd(ADMIN_USERNAME='Sevara', ADMIN_PASSWORD='birinchi-parol-123')
+        self.run_cmd(ADMIN_USERNAME='Sevara', ADMIN_PASSWORD='ikkinchi-parol-456')
+        self.assertEqual(User.objects.filter(username='Sevara').count(), 1)
+        self.assertTrue(User.objects.get(username='Sevara').check_password('ikkinchi-parol-456'))
+
+    def test_qisqa_parolda_ogohlantiradi(self):
+        out = self.run_cmd(ADMIN_USERNAME='Sevara', ADMIN_PASSWORD='qisqa123')
+        self.assertIn('parol qisqa', out)
+
+    def test_panelga_kira_oladi(self):
+        self.run_cmd(ADMIN_USERNAME='Sevara', ADMIN_PASSWORD='juda-kuchli-parol-123')
+        ok = self.client.login(username='Sevara', password='juda-kuchli-parol-123')
+        self.assertTrue(ok, 'yaratilgan hisob bilan kirib bo‘lmadi')
