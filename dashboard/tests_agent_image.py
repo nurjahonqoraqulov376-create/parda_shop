@@ -20,6 +20,7 @@ from django.urls import reverse
 
 from accounts.models import Profile
 from dashboard import agent, agent_run, agent_uploads
+from dashboard.models import AgentAction
 from pages.models import Work
 
 User = get_user_model()
@@ -288,3 +289,74 @@ class AgentImageViewTests(MediaRoot):
         self.client.force_login(support)
         response = self.client.post(self.send_url, {'text': 'x', 'image': picture()})
         self.assertEqual(response.status_code, 403)
+
+
+class SummaryLengthTests(MediaRoot):
+    """Jurnal yozuvi maydonga sig'ishi kerak.
+
+    Ishlab chiqarishda topilgan xato: `AgentAction.summary` \u2014
+    CharField(255), tavsif esa undan uzun edi. PostgreSQL yozuvni rad
+    etdi (`value too long for type character varying(255)`) va
+    tasdiqlash 500 bilan tugadi \u2014 yozuv yaratilgan bo\u2018lsa ham xodim
+    xatolik sahifasini ko\u2018rdi.
+
+    SQLite uzunlikni TEKSHIRMAYDI, shuning uchun uzunlikni bevosita
+    o\u2018lchaymiz \u2014 aks holda bu xato lokal testlarda ko\u2018rinmaydi.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.create_user('menejer', password='Parol12345!')
+        Profile.objects.create(user=self.user, role=Profile.ROLE_MANAGER)
+
+    def long_action(self):
+        """Haqiqiy holat: sarlavha odatdagidek, tavsif esa uzun.
+
+        Tavsif — `TextField`, uzunligi cheklanmagan; yordamchi u yerga
+        bemalol bir necha abzats yozadi. Jurnaldagi `summary` esa
+        CharField(255) — aynan shu joyda yiqilgandi.
+        """
+        return {'action': 'create_work', 'label': 'Ish', 'fields': {
+            'title': 'Mehmonxona uchun jigarrang baxmal parda',
+            'category': 'Baxmal parda',
+            'excerpt': 'Zich jigarrang baxmal va oq tyul.',
+            'description': 'Juda uzun to\u2018liq tavsif ' * 60,
+        }}
+
+    def max_length(self):
+        return AgentAction._meta.get_field('summary').max_length
+
+    def test_tavsif_maydonga_sigadi(self):
+        summary = agent_run.describe(self.long_action())
+        self.assertLessEqual(len(summary), self.max_length())
+
+    def test_jurnal_yozuvi_sigadi(self):
+        name, _ = agent_uploads.stash(picture())
+        with agent_uploads.load(name) as handle:
+            record, obj = agent_run.run_and_log(self.long_action(), self.user, handle)
+        self.assertIsNotNone(obj, record.error)
+        self.assertLessEqual(len(record.summary), self.max_length())
+
+    def test_qisqartirilsa_ham_amal_nomi_qoladi(self):
+        summary = agent_run.describe(self.long_action())
+        self.assertIn('Portfolio', summary)
+
+    def test_toliq_malumot_payloadda_saqlanadi(self):
+        """Qisqartirish hech narsani yo\u2018qotmasligi kerak."""
+        name, _ = agent_uploads.stash(picture())
+        action = self.long_action()
+        with agent_uploads.load(name) as handle:
+            record, _ = agent_run.run_and_log(action, self.user, handle)
+        self.assertEqual(record.payload['description'], action['fields']['description'])
+
+    def test_har_bir_matn_maydoni_chegaralangan(self):
+        summary = agent_run.describe(self.long_action())
+        for part in summary.split(', '):
+            with self.subTest(part=part[:30]):
+                self.assertLessEqual(len(part), agent_run.VALUE_LIMIT + 40)
+
+    def test_qisqa_tavsif_ozgarmaydi(self):
+        summary = agent_run.describe(
+            {'action': 'create_category', 'fields': {'name': 'Rim pardalari'}})
+        self.assertIn('Rim pardalari', summary)
+        self.assertNotIn('\u2026', summary)

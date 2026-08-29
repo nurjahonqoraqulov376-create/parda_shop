@@ -42,14 +42,31 @@ def _section_for(name, user):
     return spec, section, spec['section']
 
 
+# `AgentAction.summary` — CharField(255). Tavsif undan uzun bo'lsa
+# PostgreSQL yozuvni RAD ETADI (`value too long for type character
+# varying(255)`) va tasdiqlash 500 bilan tugaydi. SQLite uzunlikni
+# tekshirmaydi, shuning uchun bu faqat serverda bilingandi.
+# To'liq ma'lumot `payload` (JSON) da saqlanadi, ya'ni qisqartirish
+# hech narsani yo'qotmaydi.
+SUMMARY_LIMIT = 240
+VALUE_LIMIT = 60
+
+
+def _short(value, limit=VALUE_LIMIT):
+    text = str(value).replace('\n', ' ').strip()
+    return text if len(text) <= limit else text[:limit - 1] + '…'
+
+
 def describe(action):
-    """Tasdiqlash kartochkasi uchun odam o'qiydigan tavsif."""
+    """Tasdiqlash kartochkasi va jurnal uchun qisqa tavsif."""
     spec = ACTIONS.get(action.get('action'))
     label = spec['label'] if spec else action.get('action', '')
     pairs = ', '.join(
-        '%s: %s' % (key, value) for key, value in (action.get('fields') or {}).items()
+        '%s: %s' % (key, _short(value))
+        for key, value in (action.get('fields') or {}).items()
     )
-    return '%s (%s)' % (label, pairs) if pairs else label
+    text = '%s (%s)' % (label, pairs) if pairs else label
+    return _short(text, SUMMARY_LIMIT)
 
 
 def image_field_name(model):
@@ -146,7 +163,7 @@ def run_and_log(action, user, image=None):
     `(AgentAction, obyekt|None)` qaytaradi. Xato bo'lsa obyekt `None`,
     yozuvda esa `status='failed'` va xato matni turadi.
     """
-    summary = describe(action)
+    summary = describe(action)[:SUMMARY_LIMIT]
     name = (action or {}).get('action', '')
     fields = (action or {}).get('fields') or {}
 
