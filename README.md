@@ -175,6 +175,20 @@ yoziladi — sababni keyin topsa bo'ladi.
 
 Testlar: `dashboard/tests_agent.py` (61 ta, hech biri tarmoqqa chiqmaydi).
 
+## Qidiruv tizimlari uchun
+
+| Manzil | Nima |
+|---|---|
+| `/robots.txt` | Robotlarga yo'l ko'rsatadi; panel va savat indeksga tushmaydi. Sitemap manzili **joriy domendan** olinadi — domen almashsa qo'lda tahrirlash kerak emas. |
+| `/sitemap.xml` | Bosh sahifa, katalog, kategoriyalar, mahsulotlar, portfolio — ikkala tilda (`pages/sitemaps.py`). Nofaol yozuvlar chiqmaydi. |
+| `/favicon.ico` | Brend belgisi. Ilgari yo'q edi va jurnalga sahifa ochilgani sayin 404 tushardi. |
+
+Ikkala manzil ham **til prefiksisiz** (`i18n_patterns` dan tashqarida):
+robotlar ularni aynan saytning ildizidan qidiradi.
+
+Google'ga qo'shish: [Search Console](https://search.google.com/search-console)
+→ saytni qo'shing → **Sitemaps** → `sitemap.xml` ni yuboring.
+
 ## Hudud — Surxondaryo viloyati
 
 Sayt faqat Surxondaryo bo‘ylab ishlaydi. Tumanlar ro‘yxati bitta joyda —

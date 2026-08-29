@@ -3,6 +3,22 @@
 (function () {
   'use strict';
 
+/* CSRF tokenini HAR SAFAR cookie'dan o'qiymiz.
+ *
+ * Ilgari token sahifa ochilganda bir marta o'qib olinardi. Django esa
+ * kirish/chiqishda tokenni ALMASHTIRADI (`rotate_token`), shuning uchun
+ * ochiq turgan sahifadagi token eskirib qolar va har bir yuborish 403
+ * bilan qaytardi. Cookie'dagi qiymat esa doim joriy.
+ */
+function csrfToken(root) {
+  var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+  if (match) { return decodeURIComponent(match[1]); }
+  // Zaxira: cookie o'qilmasa (eski brauzer) formadagi qiymat.
+  var field = (root || document).querySelector('[name=csrfmiddlewaretoken]');
+  return field ? field.value : '';
+}
+
+
   const root = document.querySelector('[data-support]');
   if (!root) return;
 
@@ -20,7 +36,6 @@
   const textWaiting = root.dataset.textWaiting || '';
   const textConnected = root.dataset.textConnected || '';
   const textSubtitle = statusLine ? statusLine.textContent.trim() : '';
-  const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
 
   // Yangi xabarlarni tekshirish oralig'i. Oyna yopiq bo'lsa so'rov ketmaydi.
   const POLL_MS = 4000;
@@ -144,7 +159,7 @@
       method: 'POST',
       credentials: 'same-origin',
       headers: {
-        'X-CSRFToken': csrf,
+        'X-CSRFToken': csrfToken(root),
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: body.toString(),

@@ -158,6 +158,13 @@ UI = {
         'support.failed': 'Xabar yuborilmadi. Internetni tekshiring.',
 
         # --- xato sahifalari ---
+        'error.csrf_title': 'Sahifa eskirib qolgan',
+        'error.csrf_text': 'Xavfsizlik belgisi yaroqsiz bo‘lib qoldi — forma '
+                           'juda uzoq ochiq turgan yoki brauzer cookie’ni tozalagan.',
+        'error.csrf_hint': 'Sahifani yangilab, ma’lumotni qaytadan yuboring. '
+                           'Yozgan matningiz saqlanib qolgan bo‘lsa, avval «orqaga» '
+                           'qaytib nusxa olib qo‘ying.',
+        'error.csrf_reload': 'Sahifani yangilash',
         'error.403_title': 'Bu bo‘limga ruxsat yo‘q',
         'error.403_text': 'Sizning hisobingiz bu sahifani ochish huquqiga ega emas. '
                           'Kerak bo‘lsa administratordan ruxsat so‘rang yoki boshqa hisob bilan kiring.',
@@ -410,6 +417,13 @@ UI = {
         'support.failed': 'Сообщение не отправлено. Проверьте интернет.',
 
         # --- страницы ошибок ---
+        'error.csrf_title': 'Страница устарела',
+        'error.csrf_text': 'Защитный ключ больше не действителен — форма '
+                           'была открыта слишком долго или браузер очистил cookie.',
+        'error.csrf_hint': 'Обновите страницу и отправьте данные заново. '
+                           'Если вы что-то написали, сначала вернитесь назад и '
+                           'скопируйте текст.',
+        'error.csrf_reload': 'Обновить страницу',
         'error.403_title': 'Нет доступа к этому разделу',
         'error.403_text': 'У вашей учётной записи нет прав на эту страницу. '
                           'Попросите доступ у администратора или войдите под другой учётной записью.',

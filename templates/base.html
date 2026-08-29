@@ -27,6 +27,9 @@
   {% for code, label in LANGUAGES %}
     <link rel="alternate" hreflang="{{ code }}" href="{% language_url code %}">
   {% endfor %}
+  {# Favicon: jurnalda /favicon.ico ga o'nlab 404 tushayotgan edi. #}
+  <link rel="icon" href="{% static 'img/favicon.ico' %}" sizes="any">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   {% block extra_head %}{% endblock %}
 </head>

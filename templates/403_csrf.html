@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load site_extras %}
+{% comment %}
+  Django CSRF tekshiruvi o'tmaganda AYNAN shu nomdagi shablonni qidiradi
+  (`django.views.csrf.csrf_failure`). Shablon bo'lmasa o'zining ichki,
+  inglizcha va texnik sahifasini ko'rsatadi — mijoz uchun bu shunchaki
+  tushunarsiz «Forbidden (403)» devori bo'lardi.
+
+  Bu sahifa xatoni odam tiliga tarjima qiladi: forma eskirgan, yangilash
+  kerak. Ma'lumot yo'qolmasin deb «orqaga qaytish» ham taklif qilinadi.
+{% endcomment %}
+{% block title %}{% t "error.csrf_title" %} — {{ site.brand_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap narrow center">
+    <div class="error-box">
+      <span class="error-code">403</span>
+      <h1>{% t "error.csrf_title" %}</h1>
+      <p class="lead">{% t "error.csrf_text" %}</p>
+      <p class="muted">{% t "error.csrf_hint" %}</p>
+
+      <div class="error-actions">
+        <button class="button" type="button" onclick="location.reload(true)">
+          {% t "error.csrf_reload" %}
+        </button>
+        <a class="button ghost" href="{% url 'pages:home' %}">{% t "common.home" %}</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

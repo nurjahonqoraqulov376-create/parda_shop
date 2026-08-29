@@ -21,6 +21,9 @@
   var busy = false;
 
   function token() {
+    // Cookie'dagi qiymat doim joriy; formadagisi kirishdan keyin eskiradi.
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+    if (match) { return decodeURIComponent(match[1]); }
     var field = root.querySelector('[name=csrfmiddlewaretoken]');
     return field ? field.value : '';
   }

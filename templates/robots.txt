@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Boshqaruv paneli va shaxsiy sahifalar indeksga tushmasin.
+Disallow: /uz/boshqaruv/
+Disallow: /ru/boshqaruv/
+Disallow: /admin/
+Disallow: /uz/savat/
+Disallow: /ru/savat/
+Disallow: /uz/suhbat/
+Disallow: /ru/suhbat/
+
+Sitemap: {{ scheme }}://{{ host }}/sitemap.xml
