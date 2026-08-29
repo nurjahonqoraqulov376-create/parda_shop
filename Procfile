@@ -8,4 +8,8 @@
 #   Settings -> Deploy -> Pre-deploy Command
 #   python manage.py migrate --noinput && python manage.py setup_roles
 # U ishlash paytida bajariladi va bazaga ulana oladi.
-web: gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -
+# `restore_media` ishga tushish paytida bajariladi, chunki DISK (volume)
+# faqat shu konteynerda ulanadi. Pre-deploy alohida, disksiz konteynerda
+# ishlaydi — u yerda saqlangan rasm yo‘qoladi va sayt 404 beradi.
+# Nuqtali vergul: buyruq yiqilsa ham sayt baribir ko‘tariladi.
+web: python manage.py restore_media; gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -

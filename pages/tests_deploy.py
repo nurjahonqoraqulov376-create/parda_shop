@@ -60,6 +60,43 @@ class ProcfileTests(SimpleTestCase):
             )
 
 
+class MediaVolumeTests(SimpleTestCase):
+    """Rasm fayllari diskda, baza esa Postgres'da — umri boshqa-boshqa.
+
+    Railway'da pre-deploy buyruqlari **disk ulanmagan** konteynerda ishlaydi.
+    Bir marta shu sababdan bazaga 8 ta portfolio yozuvi tushdi, rasmlari esa
+    yo'qoldi: saytdagi barcha `/media/...` manzillari 404 qaytardi.
+    Shu bois fayllarni tiklash ishga tushish buyrug'ida turishi shart.
+    """
+
+    def setUp(self):
+        self.text = read('Procfile')
+
+    def test_restore_media_ishga_tushishda_chaqiriladi(self):
+        web = [line for line in self.text.splitlines() if line.startswith('web:')]
+        self.assertEqual(len(web), 1)
+        self.assertIn('restore_media', web[0])
+
+    def test_restore_media_gunicorn_dan_oldin(self):
+        web = next(line for line in self.text.splitlines() if line.startswith('web:'))
+        self.assertLess(web.index('restore_media'), web.index('gunicorn'))
+
+    def test_saytni_yiqitmaydigan_tarzda_ulangan(self):
+        """`;` — buyruq xato bersa ham gunicorn baribir ishga tushadi.
+
+        `&&` bo'lsa tiklash xatosi butun saytni o'chirib qo'yardi.
+        """
+        web = next(line for line in self.text.splitlines() if line.startswith('web:'))
+        between = web[web.index('restore_media'):web.index('gunicorn')]
+        self.assertIn(';', between)
+        self.assertNotIn('&&', between)
+
+    def test_seed_papkasi_repoda(self):
+        """Tiklash manbasi git'da bo'lmasa buyruqning ma'nosi qolmaydi."""
+        self.assertTrue((ROOT / 'seed' / 'works').is_dir())
+        self.assertTrue((ROOT / 'seed' / 'categories').is_dir())
+
+
 class StaticFilesTests(SimpleTestCase):
     def test_whitenoise_togri_tartibda(self):
         """WhiteNoise SecurityMiddleware'dan keyin turishi SHART."""
