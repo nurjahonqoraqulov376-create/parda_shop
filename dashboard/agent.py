@@ -24,6 +24,7 @@ Xavfsizlik qoidalari
 panel ishlashdan to'xtamaydi.
 """
 
+import base64
 import json
 import logging
 import re
@@ -247,7 +248,12 @@ def build_system_prompt(user):
         '8. Hech narsani O‘CHIRA olmaysan. O‘chirish so‘ralsa, buni '
         'paneldan qo‘lda qilish kerakligini ayt.\n'
         '9. Matn yozib berayotganda (tavsif, sarlavha) o‘zbekcha yoz — '
-        'ruschasini tizim o‘zi tarjima qiladi.'
+        'ruschasini tizim o‘zi tarjima qiladi.\n'
+        '10. Xodim RASM yuborsa, uni diqqat bilan ko‘r va tavsifni aynan '
+        'shu suratdagi parda bo‘yicha yoz: rangi, matosi, karnizi, qaysi '
+        'xonaga mosligi. Ko‘rinmagan narsani (narx, o‘lcham, mato nomi '
+        'aniq bilinmasa) O‘YLAB TOPMA. Rasm yozuvga tizim tomonidan '
+        'biriktiriladi — uni maydon sifatida yozishing shart emas.'
     ) % {
         'role': role,
         'name': user.get_username(),
@@ -301,14 +307,27 @@ def parse_action(text, user):
 # So'rov
 # --------------------------------------------------------------------------
 
-def _request_body(system_prompt, history, question):
+MIME_BY_FORMAT = {'JPEG': 'image/jpeg', 'PNG': 'image/png', 'WEBP': 'image/webp'}
+
+
+def _request_body(system_prompt, history, question, image=None):
     contents = []
     for role, text in history[-HISTORY_LIMIT:]:
         contents.append({
             'role': 'model' if role == 'agent' else 'user',
             'parts': [{'text': text}],
         })
-    contents.append({'role': 'user', 'parts': [{'text': question}]})
+
+    parts = [{'text': question}]
+    if image:
+        # Rasmni ham yuboramiz: yordamchi tavsifni o'ylab topmasin, aynan
+        # shu pardaning rangi va matosini ko'rib yozsin.
+        data, image_format = image
+        parts.append({'inlineData': {
+            'mimeType': MIME_BY_FORMAT.get(image_format, 'image/jpeg'),
+            'data': base64.b64encode(data).decode('ascii'),
+        }})
+    contents.append({'role': 'user', 'parts': parts})
     return {
         'systemInstruction': {'parts': [{'text': system_prompt}]},
         'contents': contents,
@@ -384,7 +403,7 @@ def _answer_text(payload):
     return None, REASON_OFFLINE
 
 
-def ask(question, user, history=()):
+def ask(question, user, history=(), image=None):
     """Xodim savoliga javob qaytaradi.
 
     `(javob_matni, amal_taklifi, sabab)` uchligi. Javob bo'lsa sabab `None`,
@@ -394,7 +413,8 @@ def ask(question, user, history=()):
     if not is_enabled() or not question:
         return None, None, REASON_OFFLINE
 
-    body = json.dumps(_request_body(build_system_prompt(user), list(history), question))
+    body = json.dumps(_request_body(
+        build_system_prompt(user), list(history), question, image))
     timeout = getattr(settings, 'AI_AGENT_TIMEOUT', 30.0)
 
     payload, reason = _call_gemini(body, timeout)

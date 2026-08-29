@@ -52,8 +52,24 @@ def describe(action):
     return '%s (%s)' % (label, pairs) if pairs else label
 
 
-def execute(action, user):
+def image_field_name(model):
+    """Modeldagi rasm maydonining nomi (`image`, `photo`, `logo`) yoki None.
+
+    `isinstance` bilan tekshiramiz: `ImageField.get_internal_type()`
+    `'FileField'` qaytaradi, ya'ni nom bo'yicha solishtirish ishlamaydi.
+    """
+    from django.db.models import ImageField
+    for field in model._meta.get_fields():
+        if isinstance(field, ImageField):
+            return field.name
+    return None
+
+
+def execute(action, user, image=None):
     """Amalni bajaradi va yaratilgan/o'zgartirilgan yozuvni qaytaradi.
+
+    `image` — yordamchiga yuborilgan rasm (ochilgan fayl). Model rasm
+    qabul qilsa, forma orqali biriktiriladi.
 
     `(obyekt, bo'lim_kaliti)` qaytaradi. Xatolik bo'lsa `ActionError`.
     """
@@ -78,7 +94,17 @@ def execute(action, user):
             raise ActionError('Yozuv topilmadi: #%s' % pk)
 
     data = _form_data(form_class, instance, fields)
-    form = form_class(data, instance=instance)
+
+    files = {}
+    if image is not None:
+        name = image_field_name(model)
+        if name:
+            from django.core.files.uploadedfile import SimpleUploadedFile
+            files[name] = SimpleUploadedFile(
+                getattr(image, 'name', 'rasm.jpg').rsplit('/', 1)[-1],
+                image.read(), content_type='image/jpeg')
+
+    form = form_class(data, files or None, instance=instance)
     if not form.is_valid():
         raise ActionError(_first_error(form))
 
@@ -114,7 +140,7 @@ def _first_error(form):
     return 'Ma’lumot tekshiruvdan o‘tmadi'
 
 
-def run_and_log(action, user):
+def run_and_log(action, user, image=None):
     """`execute` ni chaqiradi va natijani jurnalga yozadi.
 
     `(AgentAction, obyekt|None)` qaytaradi. Xato bo'lsa obyekt `None`,
@@ -125,7 +151,7 @@ def run_and_log(action, user):
     fields = (action or {}).get('fields') or {}
 
     try:
-        obj, section_key = execute(action, user)
+        obj, section_key = execute(action, user, image)
     except (ActionError, PermissionDenied) as exc:
         record = AgentAction.objects.create(
             user=user, action=name, summary=summary, payload=fields,

@@ -159,6 +159,28 @@ sozlamalar) yozolmaydi.
 
 Yordamchini butunlay o‘chirish: `AI_AGENT=False`.
 
+### Rasm biriktirish
+
+Chatdagi 📎 tugmasi orqali surat yuboriladi. Yordamchi uni **ko'radi**
+va tavsifni aynan shu pardaga qarab yozadi (rangi, matosi, karnizi) —
+ko'rinmagan narsani (narx, o'lcham) o'ylab topmaydi.
+
+Tasdiqlagandan keyin rasm yozuvga biriktiriladi. Bu portfolio uchun
+shart edi: «Mening ishlarim» yozuvi rasmsiz saqlanmaydi, ya'ni ilgari
+yordamchi uni umuman qo'sha olmasdi.
+
+| Nima | Qanday |
+|---|---|
+| Ruxsat etilgan turlar | JPG, PNG, WEBP — fayl **ochib ko'rib** aniqlanadi, `Content-Type` ga ishonilmaydi |
+| Hajm chegarasi | 8 MB |
+| Taklif tasdiqlanguncha | `media/agent_tmp/` da turadi, sessiyada faqat nomi |
+| Tasdiqlangach | yozuvga o'tadi, vaqtinchalik nusxa o'chiriladi |
+| Bekor qilinsa | darhol o'chiriladi |
+| Tashlab ketilsa | bir kundan keyin o'zi tozalanadi |
+
+`discard()` va `load()` faqat `agent_tmp/` papkasiga tegadi — boshqa
+yo'l berilsa hech narsa qilmaydi.
+
 ### Javob kelmasa
 
 Xodimga **sababi** ko'rsatiladi, umumiy «javob bera olmadi» emas:

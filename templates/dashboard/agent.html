@@ -60,6 +60,12 @@
   <div class="ag-proposal" data-agent-proposal {% if not pending %}hidden{% endif %}>
     <p class="ag-proposal-title">{% t "dash.agent_proposal" %}</p>
     <p class="ag-proposal-body" data-agent-proposal-text>{{ pending_summary|default:'' }}</p>
+    {% if pending_image_url %}
+      <p class="ag-proposal-image">
+        <img src="{{ pending_image_url }}" alt="" loading="lazy">
+        <em class="hint">{% t "dash.agent_image_note" %}</em>
+      </p>
+    {% endif %}
     <div class="ag-proposal-actions">
       <form method="post" action="{% url 'dashboard:agent_run' %}">
         {% csrf_token %}
@@ -74,9 +80,27 @@
 
   <form class="ag-form" data-agent-form>
     {% csrf_token %}
-    <textarea class="field ag-input" name="text" rows="2" maxlength="2000" required
-              data-agent-input enterkeyhint="send"
-              placeholder="{% t 'dash.agent_placeholder' %}"></textarea>
+    <div class="ag-input-wrap">
+      <textarea class="field ag-input" name="text" rows="2" maxlength="2000"
+                data-agent-input enterkeyhint="send"
+                placeholder="{% t 'dash.agent_placeholder' %}"></textarea>
+
+      {# Rasm ixtiyoriy: yordamchi uni ko'rib tavsif yozadi. #}
+      <label class="ag-attach" title="{% t 'dash.agent_attach' %}">
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp"
+               data-agent-image hidden>
+        <span aria-hidden="true">📎</span>
+        <span class="ag-attach-text">{% t "dash.agent_attach" %}</span>
+      </label>
+    </div>
+
+    <div class="ag-picked" data-agent-picked hidden>
+      <img data-agent-picked-preview alt="">
+      <span data-agent-picked-name></span>
+      <button type="button" class="ag-picked-drop" data-agent-picked-drop
+              aria-label="{% t 'common.cancel' %}">×</button>
+    </div>
+
     <button class="button" type="submit">{% t "dash.agent_send" %}</button>
   </form>
 

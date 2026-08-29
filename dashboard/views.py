@@ -20,6 +20,7 @@ from support.models import Conversation, Message
 from . import agent as agent_ai
 from .fieldgroups import group_fields
 from . import agent_run
+from . import agent_uploads
 from .forms import LeadStatusForm, OrderStatusForm, dashboard_form
 from .models import AgentAction
 from .registry import get_form_class, get_section
@@ -384,7 +385,15 @@ AGENT_REASON_TEXT = {
     agent_ai.REASON_OFFLINE: 'dash.agent_offline',
 }
 AGENT_PENDING_KEY = 'agent_pending'
+# Taklif tasdiqlangunicha rasm vaqtinchalik joyda turadi.
+AGENT_IMAGE_KEY = 'agent_pending_image'
 AGENT_HISTORY_LIMIT = 20
+
+
+def _image_format(name):
+    """Fayl kengaytmasidan Gemini uchun format nomi."""
+    suffix = (name or '').rsplit('.', 1)[-1].lower()
+    return {'png': 'PNG', 'webp': 'WEBP'}.get(suffix, 'JPEG')
 
 
 @role_required(*MANAGER_ROLES)
@@ -397,6 +406,8 @@ def agent_page(request):
         'history': request.session.get(AGENT_HISTORY_KEY, []),
         'pending': pending,
         'pending_summary': agent_run.describe(pending) if pending else '',
+        'pending_image_url': agent_uploads.public_url(
+            request.session.get(AGENT_IMAGE_KEY)),
         'recent_actions': AgentAction.objects.select_related('user')[:15],
     })
 
@@ -408,13 +419,27 @@ def agent_send(request):
         return JsonResponse({'error': 'faqat POST'}, status=405)
 
     question = (request.POST.get('text') or '').strip()
-    if not question:
-        return JsonResponse({'error': _t('dash.agent_empty')}, status=400)
     if len(question) > 2000:
         return JsonResponse({'error': _t('dash.agent_too_long')}, status=400)
 
+    # Rasm ixtiyoriy: yordamchi uni ko'rib tavsif yozadi va tasdiqlangach
+    # yozuvga biriktiriladi.
+    image = None
+    upload = request.FILES.get('image')
+    if upload is not None:
+        try:
+            stored_name, data = agent_uploads.stash(upload)
+        except agent_uploads.UploadError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+        # Eski taklifning rasmi qolib ketmasin.
+        agent_uploads.discard(request.session.get(AGENT_IMAGE_KEY))
+        request.session[AGENT_IMAGE_KEY] = stored_name
+        image = (data, _image_format(stored_name))
+    elif not question:
+        return JsonResponse({'error': _t('dash.agent_empty')}, status=400)
+
     history = request.session.get(AGENT_HISTORY_KEY, [])
-    answer, action, reason = agent_ai.ask(question, request.user, history)
+    answer, action, reason = agent_ai.ask(question, request.user, history, image)
 
     if answer is None:
         # Sababni aytamiz: xodim nima qilishini bilsin (kutish, qisqartirish).
@@ -430,6 +455,7 @@ def agent_send(request):
         'ok': True,
         'answer': answer,
         'action': {'label': action['label'], 'summary': agent_run.describe(action)} if action else None,
+        'has_image': bool(request.session.get(AGENT_IMAGE_KEY)),
     })
 
 
@@ -444,8 +470,19 @@ def agent_run_pending(request):
         messages.error(request, _t('dash.agent_no_action'))
         return redirect('dashboard:agent')
 
-    record, obj = agent_run.run_and_log(action, request.user)
+    stored_name = request.session.get(AGENT_IMAGE_KEY)
+    image = agent_uploads.load(stored_name)
+    try:
+        record, obj = agent_run.run_and_log(action, request.user, image)
+    finally:
+        if image is not None:
+            image.close()
+
     request.session[AGENT_PENDING_KEY] = None
+    if obj is not None:
+        # Rasm yozuvga ko'chdi — vaqtinchalik nusxa kerak emas.
+        agent_uploads.discard(stored_name)
+        request.session[AGENT_IMAGE_KEY] = None
     request.session.modified = True
 
     if obj is None:
@@ -461,7 +498,9 @@ def agent_run_pending(request):
 def agent_cancel(request):
     """Taklifni bekor qiladi."""
     if request.method == 'POST':
+        agent_uploads.discard(request.session.get(AGENT_IMAGE_KEY))
         request.session[AGENT_PENDING_KEY] = None
+        request.session[AGENT_IMAGE_KEY] = None
         request.session.modified = True
     return redirect('dashboard:agent')
 
@@ -470,8 +509,10 @@ def agent_cancel(request):
 def agent_reset(request):
     """Suhbatni tozalaydi."""
     if request.method == 'POST':
+        agent_uploads.discard(request.session.get(AGENT_IMAGE_KEY))
         request.session[AGENT_HISTORY_KEY] = []
         request.session[AGENT_PENDING_KEY] = None
+        request.session[AGENT_IMAGE_KEY] = None
         request.session.modified = True
     return redirect('dashboard:agent')
 
