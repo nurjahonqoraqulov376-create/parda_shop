@@ -222,13 +222,12 @@ yaratish uchun: `py manage.py setup_roles`.
 Xodim bo‘lmagan foydalanuvchi login sahifasida to‘g‘ri parol kiritsa ham
 "Sizda boshqaruv paneliga ruxsat yo‘q" xatosini oladi (`accounts/forms.py`).
 
-### Kirish havolasi mehmonlarga ko‘rsatilmaydi
+### Panelga qayerdan kiriladi
 
-Sarlavhadagi panel havolasi faqat kirgan xodimga chiqadi. Oddiy tashrifchi
-saytga kirganda boshqaruv paneli borligini bilmaydi — bu ochiq sahifada
-keraksiz ma’lumot. Xodimlar manzilni to‘g‘ridan-to‘g‘ri yozadi:
-`/uz/boshqaruv/kirish/`. Manzilning o‘zi ochiq qoladi.
-Tekshiruv: `pages/tests_smoke.py` → `StaffLoginHiddenTests`.
+Sarlavhaning o‘ng tomonidagi **Kirish** tugmasi orqali, yoki to‘g‘ridan-to‘g‘ri
+`/uz/boshqaruv/kirish/` manzilidan. Kirgan xodimga bu tugma o‘rniga
+**Panel** va **Chiqish** ko‘rinadi.
+Tekshiruv: `pages/tests_smoke.py` → `HeaderLoginLinkTests`.
 
 ## Tillar (uz / ru)
 

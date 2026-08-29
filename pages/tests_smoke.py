@@ -239,43 +239,41 @@ class HostileInputTests(TestCase):
 
 
 @NO_NETWORK
-class StaffLoginHiddenTests(TestCase):
-    """Boshqaruv paneli borligi oddiy tashrifchiga bildirilmaydi.
-
-    Ilgari sarlavhada har bir mehmonga «Kirish» tugmasi turardi va saytga
-    kirgan odam darrov xodimlar paneli borligini ko‘rardi. Panel manzili
-    o‘zi yopiq bo‘lsa ham, uni ko‘rsatib turishning hojati yo‘q.
-    """
+class HeaderLoginLinkTests(TestCase):
+    """Sarlavhadagi kirish tugmasi — xodimlar panelga shu yerdan o‘tadi."""
 
     def setUp(self):
-        self.login_url = reverse('dashboard:login')
+        # `reverse` joriy tilga bog'liq — sahifa manzili bilan bir xil
+        # tilda bo'lishi uchun har safar alohida quriladi.
+        self.login_url = '/uz/boshqaruv/kirish/'
 
-    def test_bosh_sahifada_kirish_havolasi_yoq(self):
+    def test_mehmonga_kirish_tugmasi_korinadi(self):
         html = self.client.get('/uz/').content.decode()
-        self.assertNotIn(self.login_url, html)
+        self.assertIn(self.login_url, html)
 
-    def test_ikkala_tilda_ham_yoq(self):
+    def test_ikkala_tilda_ham_bor(self):
         for lang in LANGS:
             with self.subTest(lang=lang):
                 html = self.client.get('/%s/' % lang).content.decode()
-                self.assertNotIn('/boshqaruv/kirish/', html)
+                self.assertIn('/boshqaruv/kirish/', html)
 
-    def test_ommaviy_sahifalarning_hech_birida_yoq(self):
-        paths = ['/uz/', '/uz/katalog/', '/uz/ishlarimiz/', '/uz/aloqa/', '/uz/savat/']
-        for path in paths:
-            with self.subTest(path=path):
-                response = self.client.get(path)
-                self.assertEqual(response.status_code, 200)
-                self.assertNotIn('/boshqaruv/kirish/', response.content.decode())
-
-    def test_xodimga_panel_havolasi_korinadi(self):
-        """Yashirish faqat mehmonlar uchun — xodim panelga o‘ta olishi kerak."""
+    def test_xodimga_kirish_emas_panel_havolasi(self):
+        """Kirgan xodimga takroriy «Kirish» tugmasi kerak emas."""
         user = User.objects.create_user('menejer', password='Parol12345!')
         Profile.objects.create(user=user, role=Profile.ROLE_MANAGER)
         self.client.force_login(user)
         html = self.client.get('/uz/').content.decode()
         self.assertIn(reverse('dashboard:overview'), html)
+        self.assertNotIn('href="%s"' % self.login_url, html)
 
-    def test_kirish_sahifasi_ochiq_qoladi(self):
-        """Havola yashirilgani bilan manzil ishlashdan to‘xtamaydi."""
+    def test_kirish_sahifasi_ochiladi(self):
         self.assertEqual(self.client.get(self.login_url).status_code, 200)
+
+    def test_bosh_sahifa_kirishga_yonaltirmaydi(self):
+        """Saytga kirgan odam darrov kirish sahifasiga tushib qolmasin."""
+        for path in ('/', '/uz/', '/ru/'):
+            with self.subTest(path=path):
+                response = self.client.get(path, follow=True)
+                self.assertEqual(response.status_code, 200)
+                final = response.redirect_chain[-1][0] if response.redirect_chain else path
+                self.assertNotIn('kirish', final)
