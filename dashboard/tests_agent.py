@@ -332,7 +332,7 @@ class ViewTests(TestCase):
         action = {'action': 'create_category', 'label': 'Kategoriya',
                   'fields': {'name': 'Rim'}}
         with patch('dashboard.agent.ask',
-                   return_value=('Yangi kategoriya tayyorladim.', action)):
+                   return_value=('Yangi kategoriya tayyorladim.', action, None)):
             response = self.client.post(reverse('dashboard:agent_send'),
                                         {'text': 'kategoriya qo‘sh'})
         data = response.json()
@@ -367,7 +367,7 @@ class ViewTests(TestCase):
 
     def test_javob_kelmasa_sahifa_yiqilmaydi(self):
         self.client.force_login(self.manager)
-        with patch('dashboard.agent.ask', return_value=(None, None)):
+        with patch('dashboard.agent.ask', return_value=(None, None, agent.REASON_OFFLINE)):
             response = self.client.post(reverse('dashboard:agent_send'), {'text': 'salom'})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()['ok'])
@@ -387,7 +387,7 @@ class ViewTests(TestCase):
         self.client.force_login(self.manager)
         with patch('dashboard.agent.ask',
                    return_value=('Tayyor', {'action': 'create_category',
-                                            'label': 'Kategoriya', 'fields': {'name': 'Kutmoqda'}})):
+                                            'label': 'Kategoriya', 'fields': {'name': 'Kutmoqda'}}, None)):
             self.client.post(reverse('dashboard:agent_send'), {'text': 'qo‘sh'})
         self.assertFalse(Category.objects.filter(name='Kutmoqda').exists())
 
@@ -395,7 +395,7 @@ class ViewTests(TestCase):
         self.client.force_login(self.manager)
         with patch('dashboard.agent.ask',
                    return_value=('Tayyor', {'action': 'create_category',
-                                            'label': 'Kategoriya', 'fields': {'name': 'Tasdiq'}})):
+                                            'label': 'Kategoriya', 'fields': {'name': 'Tasdiq'}}, None)):
             self.client.post(reverse('dashboard:agent_send'), {'text': 'qo‘sh'})
         self.client.post(reverse('dashboard:agent_run'))
         self.assertTrue(Category.objects.filter(name='Tasdiq').exists())
@@ -404,7 +404,7 @@ class ViewTests(TestCase):
         self.client.force_login(self.manager)
         with patch('dashboard.agent.ask',
                    return_value=('Tayyor', {'action': 'create_category',
-                                            'label': 'Kategoriya', 'fields': {'name': 'Bekor'}})):
+                                            'label': 'Kategoriya', 'fields': {'name': 'Bekor'}}, None)):
             self.client.post(reverse('dashboard:agent_send'), {'text': 'qo‘sh'})
         self.client.post(reverse('dashboard:agent_cancel'))
         self.client.post(reverse('dashboard:agent_run'))
@@ -414,7 +414,7 @@ class ViewTests(TestCase):
         self.client.force_login(self.manager)
         with patch('dashboard.agent.ask',
                    return_value=('Tayyor', {'action': 'create_category',
-                                            'label': 'Kategoriya', 'fields': {'name': 'Bir marta'}})):
+                                            'label': 'Kategoriya', 'fields': {'name': 'Bir marta'}}, None)):
             self.client.post(reverse('dashboard:agent_send'), {'text': 'qo‘sh'})
         self.client.post(reverse('dashboard:agent_run'))
         self.client.post(reverse('dashboard:agent_run'))
@@ -432,7 +432,7 @@ class ViewTests(TestCase):
 
     def test_suhbat_tozalanadi(self):
         self.client.force_login(self.manager)
-        with patch('dashboard.agent.ask', return_value=('Javob', None)):
+        with patch('dashboard.agent.ask', return_value=('Javob', None, None)):
             self.client.post(reverse('dashboard:agent_send'), {'text': 'salom'})
         self.client.post(reverse('dashboard:agent_reset'))
         self.assertEqual(self.client.session.get('agent_history'), [])
@@ -458,8 +458,120 @@ class OfflineTests(TestCase):
 
     @override_settings(GEMINI_API_KEY='')
     def test_kalitsiz_javob_bermaydi(self):
-        self.assertEqual(agent.ask('savol', self.manager), (None, None))
+        self.assertEqual(agent.ask('savol', self.manager),
+                         (None, None, agent.REASON_OFFLINE))
 
     @override_settings(AI_AGENT=False, GEMINI_API_KEY='kalit')
     def test_ochirib_qoyish_mumkin(self):
         self.assertFalse(agent.is_enabled())
+
+
+@NO_NETWORK
+class FailureReasonTests(TestCase):
+    """Nosozlikda xodim SABABNI ko‘rishi kerak.
+
+    Ilgari har qanday nosozlikda bitta umumiy «javob bera olmadi»
+    chiqardi: xodim kutish kerakmi, savolni qisqartirish kerakmi —
+    bilmasdi va serverda ham sabab yozilmasdi.
+    """
+
+    def setUp(self):
+        self.manager = make_staff('menejer', Profile.ROLE_MANAGER)
+        self.url = reverse('dashboard:agent_send')
+
+    def enabled(self):
+        return patch('dashboard.agent.is_enabled', return_value=True)
+
+    def http_error(self, code):
+        from urllib.error import HTTPError
+        return HTTPError('u', code, 'xato', {}, None)
+
+    def test_limitda_kutish_aytiladi(self):
+        with self.enabled(),              patch('dashboard.agent.time.sleep'),              patch('dashboard.agent.urlopen', side_effect=self.http_error(429)):
+            answer, action, reason = agent.ask('savol', self.manager)
+        self.assertEqual(reason, agent.REASON_BUSY)
+
+    def test_limitda_bir_marta_qayta_urinadi(self):
+        """Bepul tarifda daqiqalik limit tez bo‘shaydi — qayta urinish arziydi."""
+        good = fake_gemini('Ikkinchi urinishda javob')
+        with self.enabled(),              patch('dashboard.agent.time.sleep') as slept,              patch('dashboard.agent.urlopen',
+                   side_effect=[self.http_error(503), good]):
+            answer, action, reason = agent.ask('savol', self.manager)
+        self.assertEqual(answer, 'Ikkinchi urinishda javob')
+        self.assertIsNone(reason)
+        self.assertTrue(slept.called, 'qayta urinishdan oldin kutilmadi')
+
+    def test_boshqa_http_xatosida_qayta_urinmaydi(self):
+        """400 — so‘rovning o‘zida xato; qayta yuborish foydasiz."""
+        with self.enabled(),              patch('dashboard.agent.urlopen', side_effect=self.http_error(400)) as call:
+            _, _, reason = agent.ask('savol', self.manager)
+        self.assertEqual(reason, agent.REASON_OFFLINE)
+        self.assertEqual(call.call_count, 1)
+
+    def test_kechikish_alohida_sabab(self):
+        with self.enabled(),              patch('dashboard.agent.urlopen', side_effect=TimeoutError('kech')):
+            _, _, reason = agent.ask('savol', self.manager)
+        self.assertEqual(reason, agent.REASON_TIMEOUT)
+
+    def test_urlerror_ichidagi_timeout_ham_tanildi(self):
+        from urllib.error import URLError
+        with self.enabled(),              patch('dashboard.agent.urlopen', side_effect=URLError(TimeoutError('kech'))):
+            _, _, reason = agent.ask('savol', self.manager)
+        self.assertEqual(reason, agent.REASON_TIMEOUT)
+
+    def test_chegaraga_sigmagan_javob(self):
+        """`MAX_TOKENS` da matn BO‘SH keladi — buni aytish kerak."""
+        payload = _FakeResponse({'candidates': [
+            {'finishReason': 'MAX_TOKENS', 'content': {'parts': []}},
+        ]})
+        with self.enabled(), patch('dashboard.agent.urlopen', return_value=payload):
+            _, _, reason = agent.ask('uzun savol', self.manager)
+        self.assertEqual(reason, agent.REASON_TOO_LONG)
+
+    def test_sabab_xodimga_matn_bolib_korinadi(self):
+        self.client.force_login(self.manager)
+        with patch('dashboard.agent.ask',
+                   return_value=(None, None, agent.REASON_TOO_LONG)):
+            response = self.client.post(self.url, {'text': 'savol'})
+        data = response.json()
+        from parda_shop.translations import UI
+        self.assertFalse(data['ok'])
+        self.assertEqual(data['answer'], UI['uz']['dash.agent_too_big'])
+        self.assertNotEqual(data['answer'], UI['uz']['dash.agent_offline'])
+
+    def test_har_bir_sabab_uchun_matn_bor(self):
+        from dashboard.views import AGENT_REASON_TEXT
+        from parda_shop.translations import UI
+        for reason in (agent.REASON_BUSY, agent.REASON_TIMEOUT,
+                       agent.REASON_TOO_LONG, agent.REASON_OFFLINE):
+            with self.subTest(reason=reason):
+                key = AGENT_REASON_TEXT[reason]
+                self.assertIn(key, UI['uz'])
+                self.assertIn(key, UI['ru'])
+
+
+class SessionPersistenceTests(TestCase):
+    """Panelga kirgan xodim tez-tez qayta parol so‘rashiga tushmasin."""
+
+    def test_sirgaluvchi_muddat_yoqilgan(self):
+        from django.conf import settings as django_settings
+        self.assertTrue(django_settings.SESSION_SAVE_EVERY_REQUEST)
+
+    def test_muddat_kamida_bir_hafta(self):
+        from django.conf import settings as django_settings
+        self.assertGreaterEqual(django_settings.SESSION_COOKIE_AGE, 60 * 60 * 24 * 7)
+
+    def test_sessiya_bazada_saqlanadi(self):
+        """Ishchi jarayonlar bir nechta — xotiradagi sessiya ular orasida yo‘qoladi."""
+        from django.conf import settings as django_settings
+        engine = getattr(django_settings, 'SESSION_ENGINE',
+                         'django.contrib.sessions.backends.db')
+        self.assertNotIn('cache', engine)
+
+    def test_bir_necha_sahifada_kirgan_holat_saqlanadi(self):
+        user = make_staff('menejer', Profile.ROLE_MANAGER)
+        self.client.force_login(user)
+        for path in ('dashboard:overview', 'dashboard:order_list', 'dashboard:lead_list'):
+            with self.subTest(path=path):
+                response = self.client.get(reverse(path))
+                self.assertEqual(response.status_code, 200, 'qayta kirish so‘raldi')

@@ -159,7 +159,21 @@ sozlamalar) yozolmaydi.
 
 Yordamchini butunlay o‘chirish: `AI_AGENT=False`.
 
-Testlar: `dashboard/tests_agent.py` (48 ta, hech biri tarmoqqa chiqmaydi).
+### Javob kelmasa
+
+Xodimga **sababi** ko'rsatiladi, umumiy «javob bera olmadi» emas:
+
+| Sabab | Xabar |
+|---|---|
+| Kvota/limit (HTTP 429, 5xx) | «Yordamchi band — yarim daqiqadan keyin qayta yuboring». Avval bir marta o'zi qayta urinadi. |
+| Javob kechikdi | «Savolni qisqaroq qilib qayta yuboring» |
+| Javob chegaraga sig'madi (`MAX_TOKENS`) | «Savolni bo'lib-bo'lib so'rang» |
+| Kalit yo'q, tarmoq yo'q | «Keyinroq urinib ko'ring» |
+
+Har bir nosozlik server jurnaliga Gemini qaytargan kod va matn bilan
+yoziladi — sababni keyin topsa bo'ladi.
+
+Testlar: `dashboard/tests_agent.py` (61 ta, hech biri tarmoqqa chiqmaydi).
 
 ## Hudud — Surxondaryo viloyati
 

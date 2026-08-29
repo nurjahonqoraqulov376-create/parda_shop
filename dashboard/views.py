@@ -357,6 +357,13 @@ def site_settings(request):
 #   2) amallarning oq ro'yxati (`agent.ACTIONS`),
 #   3) tasdiqlash — hech narsa avtomatik yozilmaydi.
 AGENT_HISTORY_KEY = 'agent_history'
+# Nosozlik sababi -> xodimga ko'rsatiladigan matn kaliti.
+AGENT_REASON_TEXT = {
+    agent_ai.REASON_BUSY: 'dash.agent_busy',
+    agent_ai.REASON_TIMEOUT: 'dash.agent_timeout',
+    agent_ai.REASON_TOO_LONG: 'dash.agent_too_big',
+    agent_ai.REASON_OFFLINE: 'dash.agent_offline',
+}
 AGENT_PENDING_KEY = 'agent_pending'
 AGENT_HISTORY_LIMIT = 20
 
@@ -388,10 +395,12 @@ def agent_send(request):
         return JsonResponse({'error': _t('dash.agent_too_long')}, status=400)
 
     history = request.session.get(AGENT_HISTORY_KEY, [])
-    answer, action = agent_ai.ask(question, request.user, history)
+    answer, action, reason = agent_ai.ask(question, request.user, history)
 
     if answer is None:
-        return JsonResponse({'ok': False, 'answer': _t('dash.agent_offline')})
+        # Sababni aytamiz: xodim nima qilishini bilsin (kutish, qisqartirish).
+        return JsonResponse({'ok': False, 'answer': _t(AGENT_REASON_TEXT.get(
+            reason, 'dash.agent_offline'))})
 
     history = (history + [['user', question], ['agent', answer]])[-AGENT_HISTORY_LIMIT:]
     request.session[AGENT_HISTORY_KEY] = history

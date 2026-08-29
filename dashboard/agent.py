@@ -27,6 +27,8 @@ panel ishlashdan to'xtamaydi.
 import json
 import logging
 import re
+import socket
+import time
 from datetime import timedelta
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -317,29 +319,96 @@ def _request_body(system_prompt, history, question):
     }
 
 
-def ask(question, user, history=()):
-    """Xodim savoliga javob qaytaradi.
+# Xodimga ko'rsatiladigan sabab. Oldin har qanday nosozlikda bitta umumiy
+# xabar chiqardi va nima bo'lganini bilishning iloji yo'q edi.
+REASON_BUSY = 'busy'          # kvota/limit — biroz kutish kerak
+REASON_TIMEOUT = 'timeout'    # javob kechikdi
+REASON_TOO_LONG = 'too_long'  # javob chegaraga sig'madi
+REASON_OFFLINE = 'offline'    # tarmoq yoki kalit muammosi
 
-    `(javob_matni, amal_taklifi)` juftligi. Agent ishlamasa `(None, None)`.
+# Vaqtinchalik nosozliklarda bir marta qayta urinamiz.
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+RETRY_DELAY_SECONDS = 2.0
+
+
+def _call_gemini(body, timeout):
+    """Gemini'ga so'rov yuboradi.
+
+    `(javob_json, sabab)` qaytaradi. Muvaffaqiyatda sabab `None`.
     """
-    question = (question or '').strip()
-    if not is_enabled() or not question:
-        return None, None
-
     model = getattr(settings, 'GEMINI_MODEL', 'gemini-3.5-flash-lite')
     url = '%s?key=%s' % (ENDPOINT.format(model=model), api_key())
-    body = json.dumps(_request_body(build_system_prompt(user), list(history), question))
-
     request = Request(url, data=body.encode('utf-8'),
                       headers={'Content-Type': 'application/json'})
     try:
-        with urlopen(request, timeout=getattr(settings, 'AI_AGENT_TIMEOUT', 20.0)) as response:
-            payload = json.loads(response.read().decode('utf-8'))
-    except (HTTPError, URLError, OSError, ValueError) as exc:
+        with urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode('utf-8')), None
+    except HTTPError as exc:
+        # Xato matnini ham yozamiz — aks holda serverda sababni topib bo'lmaydi.
+        detail = ''
+        try:
+            detail = exc.read().decode('utf-8', 'replace')[:400]
+        except Exception:  # pragma: no cover - o'qib bo'lmasa ham davom etamiz
+            pass
+        logger.warning('Agent: Gemini %s qaytardi — %s', exc.code, detail)
+        if exc.code in RETRY_STATUSES:
+            return None, REASON_BUSY
+        return None, REASON_OFFLINE
+    except (TimeoutError, socket.timeout) as exc:
+        logger.warning('Agent: javob kechikdi — %s', exc)
+        return None, REASON_TIMEOUT
+    except (URLError, OSError, ValueError) as exc:
+        # `URLError` ichida ham timeout bo'lishi mumkin.
+        if isinstance(getattr(exc, 'reason', None), (TimeoutError, socket.timeout)):
+            logger.warning('Agent: javob kechikdi — %s', exc)
+            return None, REASON_TIMEOUT
         logger.warning('Agent javob bermadi: %s', exc)
-        return None, None
+        return None, REASON_OFFLINE
 
+
+def _answer_text(payload):
+    """Javob matni; matn yo'q bo'lsa sababi bilan.
+
+    Gemini javobni chegaraga sig'dira olmasa (`MAX_TOKENS`) matn qismi
+    BO'SH kelishi mumkin. Ilgari bu ham «javob bera olmadi» deb
+    ko'rsatilardi — xodim savolini qisqartirish kerakligini bilmasdi.
+    """
     text = _extract_text(payload)
+    if text:
+        return text, None
+    candidates = payload.get('candidates') or []
+    finish = (candidates[0].get('finishReason') if candidates else '') or ''
+    if finish.upper() == 'MAX_TOKENS':
+        return None, REASON_TOO_LONG
+    logger.warning('Agent: bo‘sh javob keldi (finishReason=%s)', finish or '—')
+    return None, REASON_OFFLINE
+
+
+def ask(question, user, history=()):
+    """Xodim savoliga javob qaytaradi.
+
+    `(javob_matni, amal_taklifi, sabab)` uchligi. Javob bo'lsa sabab `None`,
+    aks holda matn `None` va sabab yuqoridagi `REASON_*` lardan biri.
+    """
+    question = (question or '').strip()
+    if not is_enabled() or not question:
+        return None, None, REASON_OFFLINE
+
+    body = json.dumps(_request_body(build_system_prompt(user), list(history), question))
+    timeout = getattr(settings, 'AI_AGENT_TIMEOUT', 30.0)
+
+    payload, reason = _call_gemini(body, timeout)
+    if reason == REASON_BUSY:
+        # Bepul tarifda daqiqasiga so'rov soni cheklangan; qisqa kutib
+        # bitta qayta urinish ko'p holatda yetarli bo'ladi.
+        time.sleep(RETRY_DELAY_SECONDS)
+        payload, reason = _call_gemini(body, timeout)
+    if payload is None:
+        return None, None, reason
+
+    text, reason = _answer_text(payload)
     if not text:
-        return None, None
-    return parse_action(text, user)
+        return None, None, reason
+
+    cleaned, action = parse_action(text, user)
+    return cleaned, action, None

@@ -158,6 +158,12 @@ if env.bool('BEHIND_PROXY', default=bool(RAILWAY_DOMAIN)):
 # Mahalliy ishlashda (DEBUG=True) yoqilmaydi, aks holda http://127.0.0.1
 # https'ga yo'naltirilib, sayt ochilmay qolardi.
 # --------------------------------------------------------------------------
+# Panelga kirgan xodim tez-tez qayta parol so'rashiga tushib qolmasin.
+# `SESSION_SAVE_EVERY_REQUEST` — har so'rovda muddat qaytadan uzayadi
+# (sirg'aluvchi muddat), ya'ni ishlab turgan odam hech qachon chiqib
+# qolmaydi. Muddat faqat uzoq tinchlikdan keyin tugaydi.
+SESSION_COOKIE_AGE = env.int('SESSION_COOKIE_AGE', default=60 * 60 * 24 * 30)
+SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
