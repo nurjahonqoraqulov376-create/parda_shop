@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.core.exceptions import PermissionDenied
 from django.db.models.deletion import ProtectedError
 from django.core.paginator import Paginator
@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import get_language
 
-from accounts.forms import StaffUserForm
+from accounts.forms import MyProfileForm, StaffUserForm
 from accounts.permissions import has_role, role_required
 from catalog.models import Product
 from orders.models import Lead, Order
@@ -18,6 +18,7 @@ from parda_shop.translations import translate
 from support.models import Conversation, Message
 
 from . import agent as agent_ai
+from .fieldgroups import group_fields
 from . import agent_run
 from .forms import LeadStatusForm, OrderStatusForm, dashboard_form
 from .models import AgentAction
@@ -85,12 +86,22 @@ def section_list(request, key):
             condition |= Q(**{f'{field}__icontains': query})
         queryset = queryset.filter(condition)
 
+    # «Kim qo'shgan» faqat shu maydoni bor modellarda ko'rsatiladi.
+    has_author = any(f.name == 'created_by' for f in section['model']._meta.get_fields())
+    mine_only = has_author and request.GET.get('mine') == '1'
+    if mine_only:
+        queryset = queryset.filter(created_by=request.user)
+    if has_author:
+        queryset = queryset.select_related('created_by')
+
     return render(request, 'dashboard/section_list.html', {
         'section': section,
         'section_key': key,
         'page_obj': _paginate(request, queryset),
         'query': query,
         'total': queryset.count(),
+        'has_author': has_author,
+        'mine_only': mine_only,
     })
 
 
@@ -103,7 +114,13 @@ def section_form(request, key, pk=None):
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES, instance=instance)
         if form.is_valid():
-            form.save()
+            obj = form.save(commit=False)
+            # Kim qo'shganini eslab qolamiz: ro'yxatda ko'rinadi va
+            # xodim o'z yozuvlarini ajratib ola oladi.
+            if instance is None and hasattr(obj, 'created_by_id'):
+                obj.created_by = request.user
+            obj.save()
+            form.save_m2m()
             messages.success(request, _t('dash.saved'))
             return redirect('dashboard:section_list', key=key)
     else:
@@ -113,7 +130,9 @@ def section_form(request, key, pk=None):
         'section': section,
         'section_key': key,
         'form': form,
+        'field_groups': group_fields(form),
         'object': instance,
+        'can_delete': has_role(request.user, 'admin'),
     })
 
 
@@ -461,3 +480,36 @@ def agent_reset(request):
 def agent_pulse(request):
     """Nazorat qatori — sahifa uni davriy yangilab turadi."""
     return JsonResponse({'alerts': agent_ai.alerts(), 'snapshot': agent_ai.site_snapshot()})
+
+
+# --------------------------------------------------------------------------
+# O'z profili
+# --------------------------------------------------------------------------
+@role_required(*CHAT_ROLES)
+def my_profile(request):
+    """Har bir xodim o'z ismi, telefoni va parolini o'zgartiradi.
+
+    Rol bu yerda YO'Q: aks holda menejer o'ziga administrator huquqini
+    berib qo'ya olardi. Rolni faqat administrator, boshqa xodimning
+    sahifasidan o'zgartiradi.
+    """
+    if request.method == 'POST':
+        form = MyProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            changed = form.password_changed
+            form.save()
+            if changed:
+                # Parol almashgach Django sessiyani bekor qiladi —
+                # xodim o'zini chiqarib yubormasin.
+                update_session_auth_hash(request, request.user)
+                messages.success(request, _t('dash.password_changed'))
+            else:
+                messages.success(request, _t('dash.profile_saved'))
+            return redirect('dashboard:profile')
+    else:
+        form = MyProfileForm(instance=request.user)
+
+    return render(request, 'dashboard/profile.html', {
+        'form': form,
+        'profile': getattr(request.user, 'profile', None),
+    })

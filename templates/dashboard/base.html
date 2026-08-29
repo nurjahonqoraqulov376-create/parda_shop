@@ -49,7 +49,13 @@
   </nav>
 
   <div class="dash-side-foot">
-    <p class="muted">{{ user.get_username }} · {% if is_site_admin %}Administrator{% else %}Menejer{% endif %}</p>
+    <a class="dash-me" href="{% url 'dashboard:profile' %}">
+      <span class="dash-me-avatar">{{ user.get_username|slice:":1"|upper }}</span>
+      <span class="dash-me-text">
+        <b>{{ user.get_username }}</b>
+        <small>{% t "dash.profile" %}</small>
+      </span>
+    </a>
     <a class="link-more" href="{% url 'pages:home' %}">← {% t "dash.to_site" %}</a>
     <form method="post" action="{% url 'dashboard:logout' %}" class="dash-logout-form">
       {% csrf_token %}

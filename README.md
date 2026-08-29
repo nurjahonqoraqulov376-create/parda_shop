@@ -266,6 +266,40 @@ slayder, galereya kabi UI mexanikasi bilan shug‘ullanadi).
 Yangi rasm qo‘shsangiz `width`/`height` atributlarini yozing (kontent sakramasligi uchun);
 `img { height: auto }` global qoidasi nisbatni saqlaydi.
 
+## Panel formalarini to'ldirish
+
+Mahsulot, ish va xodim qo'shish formalari **guruhlarga** bo'lingan:
+«Asosiy ma'lumot», «Narx va ombor», «Matnlar», «Rasm»,
+«Ko'rsatish». Har bir guruhda nima uchun kerakligi yozilgan, majburiy
+maydonlar `*` bilan belgilangan, saqlash tugmasi pastda yopishib turadi.
+
+Guruhlash maydon **nomi** bo'yicha ishlaydi (`dashboard/fieldgroups.py`) —
+yangi model qo'shilsa alohida sozlash shart emas, tanish bo'lmagan maydon
+oxirgi guruhga tushadi.
+
+Tushuntirishlar `dashboard/forms.py` → `FIELD_HINTS` da. Modelda
+`help_text` yozilgan bo'lsa o'sha ustunlik qiladi.
+
+### Kim qo'shgan
+
+Mahsulot va portfolio ishida `created_by` saqlanadi: ro'yxatda ustun
+bo'lib ko'rinadi va «Faqat men qo'shganlarim» belgisi bor. Tahrirlashda
+muallif o'zgarmaydi. Menejer va administrator barcha yozuvlarni
+tahrirlaydi — cheklov qo'yilmagan.
+
+### O'z profili
+
+`/boshqaruv/profil/` — har bir xodim (support ham) o'z ismi, telefoni,
+emaili va parolini o'zgartiradi.
+
+> 🔒 Bu formada **rol maydoni yo'q** va POST orqali ham
+> o'zgarmaydi: aks holda menejer o'ziga administrator huquqini berib
+> qo'ya olardi. Rolni faqat administrator, boshqa xodimning sahifasidan
+> o'zgartiradi.
+>
+> Parolni almashtirish uchun **joriy parol** so'raladi — ochiq qolgan
+> sahifadan foydalanib parol o'zgartirilmasin.
+
 ## Panel telefonda
 
 Yon menyu tor ekranda (≤820px) **yig'ilib** turadi: tepada faqat brend va

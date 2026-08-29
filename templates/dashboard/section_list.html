@@ -10,6 +10,13 @@
 <form class="dash-filter" method="get">
   <input class="field" type="search" name="q" value="{{ query }}" placeholder="{% t 'common.search' %}">
   <button class="button ghost small" type="submit">{% t "common.search" %}</button>
+  {% if has_author %}
+    <label class="filter-check">
+      <input type="checkbox" name="mine" value="1" {% if mine_only %}checked{% endif %}
+             onchange="this.form.submit()">
+      <span>{% t "dash.mine_only" %}</span>
+    </label>
+  {% endif %}
   <span class="muted">{{ total }}</span>
 </form>
 
@@ -18,6 +25,7 @@
     <thead>
       <tr>
         {% for label, attr in section.columns %}<th>{{ label }}</th>{% endfor %}
+        {% if has_author %}<th>{% t "dash.author" %}</th>{% endif %}
         <th></th>
       </tr>
     </thead>
@@ -33,6 +41,9 @@
               {% endif %}
             </td>
           {% endfor %}
+          {% if has_author %}
+            <td class="muted">{{ object.created_by.username|default:"—" }}</td>
+          {% endif %}
           <td class="row-actions">
             <a href="{% url 'dashboard:section_edit' section_key object.pk %}">{% t "common.edit" %}</a>
             {% if is_site_admin %}

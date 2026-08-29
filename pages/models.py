@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -216,6 +217,11 @@ class Work(ShrinkImageOnSaveMixin, TranslatableMixin, models.Model):
     description_ru = models.TextField('To‘liq tavsif (ru)', blank=True)
     image = models.ImageField('Asosiy rasm', upload_to='works/')
     created_at = models.DateField('Qo‘shilgan sana', auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='%(app_label)s_%(class)s_created',
+        verbose_name='Kim qo‘shgan', editable=False,
+    )
     sort_order = models.PositiveIntegerField('Tartib', default=0)
     is_active = models.BooleanField('Aktiv', default=True)
 

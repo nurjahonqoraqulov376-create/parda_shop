@@ -24,6 +24,7 @@ urlpatterns = [
     path('foydalanuvchilar/<int:pk>/', views.user_form, name='user_edit'),
     path('foydalanuvchilar/<int:pk>/ochirish/', views.user_delete, name='user_delete'),
     path('sozlamalar/', views.site_settings, name='settings'),
+    path('profil/', views.my_profile, name='profile'),
     # Suhbatlar pastdagi `<slug:key>` catch-all'dan OLDIN turishi shart —
     # aks holda `suhbatlar/` generic CRUD bo'limi deb qabul qilinadi.
     path('kirgandan-keyin/', views.after_login, name='after_login'),

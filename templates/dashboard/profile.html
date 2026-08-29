@@ -1,0 +1,68 @@
+{% extends 'dashboard/base.html' %}
+{% load dashboard_extras site_extras %}
+{% block title %}{% t "dash.profile" %}{% endblock %}
+{% block heading %}{% t "dash.profile" %}{% endblock %}
+
+{% block content %}
+<div class="profile-head panel">
+  <span class="profile-avatar">{{ user.get_username|slice:":1"|upper }}</span>
+  <div>
+    <b>{{ user.get_full_name|default:user.get_username }}</b>
+    <p class="muted">
+      {{ user.get_username }}
+      {% if profile %} · {{ profile.get_role_display }}{% elif user.is_superuser %} · Administrator{% endif %}
+    </p>
+    <p class="hint">{% t "dash.profile_role_note" %}</p>
+  </div>
+</div>
+
+<form method="post" class="dash-form form-grouped">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="flash error">{{ form.non_field_errors|striptags }}</div>
+  {% endif %}
+
+  <fieldset class="fset">
+    <legend class="fset-legend">Shaxsiy ma’lumot</legend>
+    <p class="fset-note">{% t "dash.profile_lead" %}</p>
+    <div class="fset-grid">
+      {% for field in form %}
+        {% if not field.name|slice:":8" == "password" and not field.name == "current_password" %}
+          <label class="field-row {% if field.errors %}has-error{% endif %}">
+            <span>
+              {{ field.label }}
+              {% if field.field.required %}<b class="req">*</b>{% endif %}
+            </span>
+            {{ field }}
+            {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
+            {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+          </label>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset class="fset">
+    <legend class="fset-legend">Parolni o‘zgartirish</legend>
+    <p class="fset-note">Parolni o‘zgartirmoqchi bo‘lmasangiz bu joyni bo‘sh qoldiring.</p>
+    <div class="fset-grid">
+      {% for field in form %}
+        {% if field.name|slice:":8" == "password" or field.name == "current_password" %}
+          <label class="field-row {% if field.errors %}has-error{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
+            {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+          </label>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <div class="form-actions form-actions-sticky">
+    <button class="button" type="submit">{% t "common.save" %}</button>
+    <a class="button ghost" href="{% url 'dashboard:after_login' %}">{% t "common.cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

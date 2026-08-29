@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-{% load site_extras %}
+{% load dashboard_extras site_extras %}
 {% block heading %}{{ section.title }} — {% if object %}{% t "common.edit" %}{% else %}{% t "common.add" %}{% endif %}{% endblock %}
 
 {% block actions %}
@@ -7,22 +7,49 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel">
-  <form method="post" enctype="multipart/form-data" class="dash-form">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-      <label class="field-row">
-        <span>{{ field.label }}</span>
-        {{ field }}
-        {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
-        {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
-      </label>
-    {% endfor %}
-    <div class="form-actions">
-      <button class="button" type="submit">{% t "common.save" %}</button>
-      <a class="button ghost" href="{% url 'dashboard:section_list' section_key %}">{% t "common.cancel" %}</a>
-    </div>
-  </form>
-</div>
+<form method="post" enctype="multipart/form-data" class="dash-form form-grouped">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="flash error">{{ form.non_field_errors|striptags }}</div>
+  {% endif %}
+  {% if form.errors %}
+    <div class="flash error">{% t "dash.form_has_errors" %}</div>
+  {% endif %}
+
+  {% for group in field_groups %}
+    <fieldset class="fset">
+      <legend class="fset-legend">{{ group.title }}</legend>
+      {% if group.note %}<p class="fset-note">{{ group.note }}</p>{% endif %}
+
+      <div class="fset-grid">
+        {% for field in group.fields %}
+          <label class="field-row {% if field.field.widget.input_type == 'checkbox' %}field-check{% elif field|is_wide %}field-wide{% endif %} {% if field.errors %}has-error{% endif %}">
+            <span>
+              {{ field.label }}
+              {% if field.field.required %}<b class="req" title="{% t 'dash.field_required' %}">*</b>{% endif %}
+            </span>
+
+            {# Mavjud rasm ko'rinib tursin — nima almashayotgani bilinsin. #}
+            {% if field.name == 'image' and field.value %}
+              <img class="field-preview" src="{{ object.image.url }}" alt="" loading="lazy">
+            {% endif %}
+
+            {{ field }}
+            {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
+            {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+  {% endfor %}
+
+  <div class="form-actions form-actions-sticky">
+    <button class="button" type="submit">{% t "common.save" %}</button>
+    <a class="button ghost" href="{% url 'dashboard:section_list' section_key %}">{% t "common.cancel" %}</a>
+    {% if object and can_delete %}
+      <a class="button danger" href="{% url 'dashboard:section_delete' section_key object.pk %}">{% t "common.delete" %}</a>
+    {% endif %}
+  </div>
+</form>
 {% endblock %}

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -54,6 +55,11 @@ class Product(ShrinkImageOnSaveMixin, TranslatableMixin, models.Model):
     is_featured = models.BooleanField('Tanlangan (ommabop)', default=False)
     sort_order = models.PositiveIntegerField('Tartib', default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='%(app_label)s_%(class)s_created',
+        verbose_name='Kim qo‘shgan', editable=False,
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

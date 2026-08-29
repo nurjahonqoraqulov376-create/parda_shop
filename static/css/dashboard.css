@@ -341,3 +341,86 @@ a, button, label, summary { -webkit-tap-highlight-color: transparent; touch-acti
   .ag-input { font-size: 16px; }
   .ag-proposal-actions .button { width: 100%; }
 }
+
+/* ==========================================================================
+   Guruhlangan formalar (mahsulot, ish, xodim qo'shish)
+   ==========================================================================
+   Ilgari 15 dan ortiq maydon bitta uzun ustunga tizilardi va nimadan
+   boshlashni bilish qiyin edi. Endi mazmuniga qarab guruhlarga bo'linadi. */
+.form-grouped { max-width: 940px; }
+
+.fset {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel); box-shadow: var(--shadow);
+  padding: 16px 18px 18px; margin: 0 0 16px;
+}
+.fset-legend {
+  padding: 0 8px; margin-left: -8px;
+  font-size: 13px; font-weight: 600; letter-spacing: .3px;
+}
+.fset-note { margin: 0 0 14px; font-size: 12px; color: var(--muted); }
+
+.fset-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0 18px; align-items: start;
+}
+/* Matn maydoni va rasm tanlagichi butun kenglikni oladi. */
+.fset-grid .field-wide { grid-column: 1 / -1; }
+
+.field-row.has-error > span { color: var(--danger); }
+.field-row.has-error .field,
+.field-row.has-error input,
+.field-row.has-error textarea,
+.field-row.has-error select { border-color: var(--danger); }
+
+.req { color: #cf8248; font-weight: 700; margin-left: 2px; }
+
+/* Belgili (checkbox) maydonlar yonma-yon, matn chapda */
+.field-check { flex-direction: row; align-items: center; gap: 8px; }
+.field-check > span { order: 2; font-weight: 400; }
+.field-check input { order: 1; width: 18px; height: 18px; flex: none; }
+.field-check .hint { order: 3; flex-basis: 100%; }
+
+.field-preview {
+  max-width: 180px; border-radius: var(--radius);
+  border: 1px solid var(--line); margin-bottom: 6px;
+}
+
+/* Saqlash tugmasi doim ko'rinib tursin — uzun formada pastga tushish shart emas */
+.form-actions-sticky {
+  position: sticky; bottom: 0; z-index: 5;
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 12px 0; margin-top: 4px;
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+}
+
+.filter-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.filter-check input { width: 17px; height: 17px; }
+
+/* --------------------------------------------------------- o'z profili */
+.profile-head { display: flex; align-items: center; gap: 14px; }
+.profile-head p { margin: 2px 0 0; }
+.profile-avatar {
+  width: 52px; height: 52px; flex: none; display: grid; place-items: center;
+  border-radius: 50%; background: var(--ink); color: #fff;
+  font-size: 20px; font-weight: 700;
+}
+
+.dash-me {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 10px;
+  padding: 8px; border-radius: var(--radius); background: rgba(255, 255, 255, .06);
+}
+.dash-me:hover { background: rgba(255, 255, 255, .12); }
+.dash-me-avatar {
+  width: 30px; height: 30px; flex: none; display: grid; place-items: center;
+  border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px;
+}
+.dash-me-text b { display: block; color: #fff; font-size: 13px; }
+.dash-me-text small { color: #8f8a81; font-size: 11px; }
+
+@media (max-width: 560px) {
+  .fset { padding: 14px; }
+  .fset-grid { grid-template-columns: 1fr; }
+  .form-actions-sticky .button { width: 100%; }
+  .profile-head { flex-direction: column; align-items: flex-start; }
+}

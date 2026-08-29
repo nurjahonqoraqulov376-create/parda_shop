@@ -17,18 +17,64 @@
     <p class="muted">Yangi xodim yarating — u shu login va parol bilan boshqaruv paneliga kiradi.</p>
   {% endif %}
 
-  <form method="post" class="dash-form">
+  <form method="post" class="dash-form form-grouped">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="flash error">{{ form.non_field_errors|striptags }}</div>{% endif %}
-    {% for field in form %}
-      <label class="field-row">
-        <span>{{ field.label }}</span>
-        {{ field }}
-        {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
-        {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
-      </label>
-    {% endfor %}
-    <div class="form-actions">
+    {% if form.errors %}<div class="flash error">{% t "dash.form_has_errors" %}</div>{% endif %}
+
+    <fieldset class="fset">
+      <legend class="fset-legend">Kim</legend>
+      <p class="fset-note">Login bilan panelga kiradi. Ism va familiya ro‘yxatlarda ko‘rinadi.</p>
+      <div class="fset-grid">
+        {% for field in form %}
+          {% if field.name == 'username' or field.name == 'first_name' or field.name == 'last_name' or field.name == 'email' or field.name == 'phone' %}
+            <label class="field-row {% if field.errors %}has-error{% endif %}">
+              <span>{{ field.label }}{% if field.field.required %}<b class="req">*</b>{% endif %}</span>
+              {{ field }}
+              {% if field.help_text %}<em class="hint">{{ field.help_text }}</em>{% endif %}
+              {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+            </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="fset">
+      <legend class="fset-legend">Ruxsat</legend>
+      <p class="fset-note">
+        <b>Support</b> — faqat suhbatlar. <b>Menejer</b> — buyurtma, so‘rov,
+        mahsulot. <b>Administrator</b> — hammasi, jumladan xodimlar va sozlamalar.
+      </p>
+      <div class="fset-grid">
+        {% for field in form %}
+          {% if field.name == 'role' %}
+            <label class="field-row {% if field.errors %}has-error{% endif %}">
+              <span>{{ field.label }}<b class="req">*</b></span>
+              {{ field }}
+              {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+            </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="fset">
+      <legend class="fset-legend">Parol</legend>
+      <p class="fset-note">Kamida 8 belgi. {% if account %}Bo‘sh qoldirsangiz parol o‘zgarmaydi.{% endif %}</p>
+      <div class="fset-grid">
+        {% for field in form %}
+          {% if field.name == 'password1' or field.name == 'password2' %}
+            <label class="field-row {% if field.errors %}has-error{% endif %}">
+              <span>{{ field.label }}{% if field.field.required %}<b class="req">*</b>{% endif %}</span>
+              {{ field }}
+              {% if field.errors %}<em class="errors">{{ field.errors|striptags }}</em>{% endif %}
+            </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <div class="form-actions form-actions-sticky">
       <button class="button" type="submit">{% t "common.save" %}</button>
       <a class="button ghost" href="{% url 'dashboard:user_list' %}">{% t "common.cancel" %}</a>
       {% if account and not account.is_superuser and account != user %}

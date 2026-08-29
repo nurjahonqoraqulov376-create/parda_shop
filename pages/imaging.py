@@ -19,6 +19,37 @@ MAX_SIDE = 1600
 QUALITY = 82
 
 
+def _rewind(field):
+    """Faylni saqlashga tayyor holatga qaytaradi.
+
+    `Image.open()` faylni o'qib qo'yadi va biz uni yopamiz. Agar rasmni
+    almashtirmasak (allaqachon kichik yoki buzuq bo'lsa), Django o'sha
+    faylni diskka yozmoqchi bo'ladi va yopiq fayldan o'qib
+    `ValueError: I/O operation on closed file` beradi — natijada
+    paneldan mahsulot yoki portfolio ishi QO'SHIB BO'LMAYDI.
+
+    Aynan shu sabab 1600px dan kichik har qanday JPEG yuklashda
+    500 xatosi chiqardi.
+    """
+    # Diskdagi (allaqachon saqlangan) faylni Django qayta yozmaydi, ochiq
+    # qoldirish esa Windows'da uni band qilib qo'yadi — keyin o'chirib
+    # bo'lmaydi. Shuning uchun faqat YANGI yuklangan faylni tiklaymiz.
+    if getattr(field, '_committed', True):
+        try:
+            field.close()
+        except Exception:  # noqa: BLE001
+            pass
+        return
+
+    try:
+        if getattr(field, 'closed', False):
+            field.open()
+        else:
+            field.seek(0)
+    except Exception:  # noqa: BLE001 — tiklab bo'lmasa saqlash o'zi xato beradi
+        pass
+
+
 def shrink(instance, field_name='image', max_side=MAX_SIDE, quality=QUALITY):
     """Maydondagi rasmni kichraytirib, JPEG sifatida qayta yozadi.
 
@@ -35,6 +66,7 @@ def shrink(instance, field_name='image', max_side=MAX_SIDE, quality=QUALITY):
     except ImportError:  # Pillow yo'q — rasm o'zgarishsiz qoladi
         return False
 
+    buffer = None
     try:
         field.open()
         picture = Image.open(field)
@@ -43,27 +75,31 @@ def shrink(instance, field_name='image', max_side=MAX_SIDE, quality=QUALITY):
         # allaqachon JPEG bo'lgan rasm ham qayta siqilib, sifati yo'qoladi.
         source_format = (picture.format or '').upper()
         already_small = max(picture.size) <= max_side
-        if already_small and source_format in ('JPEG', 'JPG'):
-            return False
+        if not (already_small and source_format in ('JPEG', 'JPG')):
+            # Telefon suratlari EXIF'da burilish bilan saqlanadi;
+            # kichraytirishdan oldin uni qo'llamasak, rasm yonboshlab qoladi.
+            picture = ImageOps.exif_transpose(picture)
 
-        # Telefon suratlari EXIF'da burilish bilan saqlanadi; kichraytirishdan
-        # oldin uni qo'llamasak, rasm yonboshlab qoladi.
-        picture = ImageOps.exif_transpose(picture)
+            picture.thumbnail((max_side, max_side), Image.LANCZOS)
+            if picture.mode not in ('RGB', 'L'):
+                picture = picture.convert('RGB')
 
-        picture.thumbnail((max_side, max_side), Image.LANCZOS)
-        if picture.mode not in ('RGB', 'L'):
-            picture = picture.convert('RGB')
-
-        buffer = io.BytesIO()
-        picture.save(buffer, format='JPEG', quality=quality, optimize=True, progressive=True)
+            buffer = io.BytesIO()
+            picture.save(buffer, format='JPEG', quality=quality,
+                         optimize=True, progressive=True)
     except Exception as exc:  # noqa: BLE001 — buzuq rasm saqlashni to'xtatmasin
         logger.warning('Rasmni kichraytirib bo‘lmadi (%s): %s', getattr(field, 'name', '?'), exc)
+        buffer = None
+
+    if buffer is None:
+        # Rasmga tegmadik — faylni Django yoza oladigan holatga qaytaramiz.
+        _rewind(field)
         return False
-    finally:
-        try:
-            field.close()
-        except Exception:  # noqa: BLE001
-            pass
+
+    try:
+        field.close()
+    except Exception:  # noqa: BLE001
+        pass
 
     name = field.name.rsplit('/', 1)[-1]
     stem = name.rsplit('.', 1)[0]
