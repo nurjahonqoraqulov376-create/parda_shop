@@ -21,6 +21,9 @@ CONTACT_PHONE = '+998 99 986 71 99'
 # tozalanishi mumkin, `seed/` esa har joylashtirishda qaytadan yetkaziladi.
 SEED_CATEGORY_DIR = Path(settings.BASE_DIR) / 'seed' / 'categories'
 
+# `add_arguments` ichida sinf maydoniga murojaat qilib bo'lmaydi.
+SAFE_PARTS_KEYS = ('advantages', 'banners', 'categories', 'content', 'services')
+
 # (slug, nomi, nomi_ru, ikon, bosh sahifada, tavsif, tavsif_ru)
 CATEGORIES = [
     ('plisse-jalyuzi', 'Plisse jalyuzi', 'Плиссе жалюзи', '▤', True,
@@ -827,24 +830,41 @@ CONTENT_BLOCKS = [
 class Command(BaseCommand):
     help = 'Sayt uchun demo kategoriya, mahsulot va kontent yaratadi.'
 
+    # Ishlab turgan saytga chiqarish MUMKIN bo'lgan qismlar. Bu yerda
+    # o'ylab topilgan narx, soxta mijoz sharhi va soxta hamkor yo'q —
+    # faqat do'konning o'zi haqidagi ma'lumot va tuzilma.
+    SAFE_PARTS = {
+        'categories': '_categories_with_images',
+        'advantages': '_advantages',
+        'services': '_services',
+        'content': '_content_blocks',
+        'banners': '_banners',
+    }
+
     def add_arguments(self, parser):
         parser.add_argument(
+            '--only', nargs='+', choices=sorted(SAFE_PARTS_KEYS),
+            help='Faqat ko‘rsatilgan qismlar yaratiladi. Demo mahsulot, '
+                 'soxta mijoz sharhi va hamkorlar YARATILMAYDI — ishlab '
+                 'turgan saytda ular turishi mumkin emas.',
+        )
+        parser.add_argument(
             '--categories-only', action='store_true',
-            help='Faqat kategoriyalar (va ularning rasmlari) yaratiladi. '
-                 'Demo mahsulotlar, maqolalar va sharhlar yaratilmaydi — '
-                 'haqiqiy saytda o‘ylab topilgan narxlar turmasligi uchun.',
+            help='`--only categories` bilan bir xil (eski nom).',
         )
 
     @transaction.atomic
     def handle(self, *args, **options):
         # Demo kontentda ruscha matnlar qo'lda yozilgan — avtomatik tarjima ustidan yozmasin.
-        if options.get('categories_only'):
+        parts = list(options.get('only') or [])
+        if options.get('categories_only') and 'categories' not in parts:
+            parts.append('categories')
+        if parts:
             with mt.suspend():
-                categories = self._categories()
-                attached = self._category_images(categories)
+                for part in parts:
+                    getattr(self, self.SAFE_PARTS[part])()
             self.stdout.write(self.style.SUCCESS(
-                'Tayyor: %d kategoriya, %d tasiga rasm biriktirildi.'
-                % (len(categories), attached)
+                'Tayyor: %s.' % ', '.join(parts)
             ))
             return
 
@@ -945,6 +965,12 @@ class Command(BaseCommand):
             )
             categories[slug] = category
         return categories
+
+    def _categories_with_images(self):
+        categories = self._categories()
+        attached = self._category_images(categories)
+        self.stdout.write('  %d kategoriya, %d tasiga rasm biriktirildi.'
+                          % (len(categories), attached))
 
     def _category_images(self, categories):
         """`seed/categories/<slug>.jpg` bo'lsa kategoriyaga biriktiradi.

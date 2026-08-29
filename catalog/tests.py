@@ -6,7 +6,9 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from catalog.management.commands.seed_demo import CATEGORIES, SEED_CATEGORY_DIR
+from catalog.management.commands.seed_demo import (
+    CATEGORIES, SAFE_PARTS_KEYS, SEED_CATEGORY_DIR,
+)
 from catalog.models import Category, Product
 
 
@@ -137,3 +139,54 @@ class SeedCategoriesOnlyTests(TestCase):
         self.run_cmd()
         category.refresh_from_db()
         self.assertEqual(category.image.name, 'categories/qolda.jpg')
+
+
+@override_settings(AUTO_TRANSLATE=False)
+class SeedOnlyPartsTests(TestCase):
+    """`--only` — ishlab turgan saytga chiqarish mumkin bo‘lgan qismlar.
+
+    To‘liq `seed_demo` uchta narsani yaratadi va ular haqiqiy do‘konda
+    turishi mumkin emas: o‘ylab topilgan narxli mahsulotlar, soxta mijoz
+    sharhlari va soxta hamkorlar ro‘yxati. `--only` ularga yo‘l bermaydi.
+    """
+
+    def run_only(self, *parts):
+        from io import StringIO
+        out = StringIO()
+        call_command('seed_demo', '--only', *parts, stdout=out)
+        return out.getvalue()
+
+    def test_afzalliklar_yaratiladi(self):
+        from pages.models import Advantage
+        self.run_only('advantages')
+        self.assertGreater(Advantage.objects.filter(is_active=True).count(), 0)
+
+    def test_bir_nechta_qism_birga(self):
+        from pages.models import Advantage
+        self.run_only('advantages', 'categories')
+        self.assertGreater(Advantage.objects.count(), 0)
+        self.assertEqual(Category.objects.count(), len(CATEGORIES))
+
+    def test_soxta_kontent_hech_qachon_yaratilmaydi(self):
+        from pages.models import Client, Testimonial
+        self.run_only(*SAFE_PARTS_KEYS)
+        self.assertEqual(Product.objects.count(), 0, 'o‘ylab topilgan narx saytga chiqdi')
+        self.assertEqual(Testimonial.objects.count(), 0, 'soxta mijoz sharhi saytga chiqdi')
+        self.assertEqual(Client.objects.count(), 0, 'soxta hamkor saytga chiqdi')
+
+    def test_notanish_qism_rad_etiladi(self):
+        from django.core.management.base import CommandError
+        with self.assertRaises(CommandError):
+            self.run_only('mahsulotlar')
+
+    def test_eski_bayroq_ishlashda_davom_etadi(self):
+        from io import StringIO
+        call_command('seed_demo', '--categories-only', stdout=StringIO())
+        self.assertEqual(Category.objects.count(), len(CATEGORIES))
+
+    def test_qayta_ishga_tushirsa_takrorlanmaydi(self):
+        from pages.models import Advantage
+        self.run_only('advantages')
+        count = Advantage.objects.count()
+        self.run_only('advantages')
+        self.assertEqual(Advantage.objects.count(), count)

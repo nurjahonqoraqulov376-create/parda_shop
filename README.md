@@ -533,14 +533,17 @@ so'ng olib tashlang:
 
 | Nima | Buyruq |
 |---|---|
-| Kategoriya tuzilmasi (14 ta) | `python manage.py seed_demo --categories-only` |
+| Kategoriya tuzilmasi, afzalliklar, xizmatlar | `python manage.py seed_demo --only categories advantages services content` |
 | «Mening ishlarim» portfolio (8 ta) | `python manage.py import_works` |
 
 Rasm fayllarini keyingi ishga tushishda `restore_media` o'zi joyiga qo'yadi.
 
-> ⚠️ **`seed_demo` ni bayroqsiz ishlatmang.** To'liq variant o'ylab
-> topilgan nom va narxli 70 ta mahsulot yaratadi. Ular namoyish uchun; ishlab
-> turgan do'konda mijoz soxta narxni ko'rib qo'ng'iroq qiladi.
+> ⚠️ **`seed_demo` ni bayroqsiz ishlatmang.** To'liq variant uchta
+> narsani yaratadi va ular haqiqiy do'konda turishi mumkin emas: o'ylab
+> topilgan nom va narxli 70 ta mahsulot, soxta mijoz sharhlari va soxta
+> hamkorlar ro'yxati. `--only` bularga yo'l bermaydi — unga faqat
+> do'konning o'zi haqidagi ma'lumot va tuzilma kiradi:
+> `advantages`, `banners`, `categories`, `content`, `services`.
 
 Mahsulotlarni panelga kirib qo'lda qo'shasiz:
 `/uz/boshqaruv/mahsulotlar/` → **Qo'shish**.
