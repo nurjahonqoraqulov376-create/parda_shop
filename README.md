@@ -474,7 +474,7 @@ Buyruqlar Railway'ning **Settings** bo'limida qo'lda yoziladi
 | Qayerda | Nima yoziladi |
 |---|---|
 | Settings → Build → **Custom Build Command** | `python manage.py collectstatic --noinput` |
-| Settings → Deploy → **Custom Start Command** | `gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -` |
+| Settings → Deploy → **Custom Start Command** | `python manage.py restore_media; gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -` |
 | Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles && python manage.py ensure_admin` |
 
 > ⚠️ **Migratsiyani `Procfile` ning `release:` qatoriga YOZMANG.** Nixpacks
@@ -517,18 +517,26 @@ Endi kirish mumkin: `https://<domen>/uz/boshqaruv/kirish/`
 
 ### 9-qadam. Kontentni to'ldirish
 
-Serverda terminal yo'q, shuning uchun kontent **Pre-deploy Command** ga
-vaqtincha buyruq qo'shish orqali to'ldiriladi. To'ldirilgach buyruqni
-olib tashlang — aks holda har joylashtirishda qaytariladi.
+> ⚠️ **Ikki xil saqlash joyi.** Baza — Postgres'da, rasmlar — alohida
+> ulanadigan diskda (volume). **Pre-deploy buyruqlari disk ULANMAGAN
+> konteynerda ishlaydi.** Ya'ni pre-deploy'da rasm saqlasangiz, bazaga yozuv
+> tushadi, fayl esa yo'qoladi — saytda barcha `/media/...` manzillari 404
+> beradi. Bu xato bir marta yuz bergan.
+>
+> Shu sababli loyihada **`restore_media`** buyrug'i bor va u **ishga tushirish
+> buyrug'ida** turadi (7-qadamdagi Custom Start Command). U `seed/` dagi
+> nusxalardan faqat **yo'q** fayllarni tiklaydi — paneldan yuklangan
+> rasmga tegmaydi.
+
+Yozuvlarni yaratish uchun **Pre-deploy Command** ga vaqtincha qo'shing,
+so'ng olib tashlang:
 
 | Nima | Buyruq |
 |---|---|
-| Kategoriya tuzilmasi (14 ta, rasmi bilan) | `python manage.py seed_demo --categories-only` |
+| Kategoriya tuzilmasi (14 ta) | `python manage.py seed_demo --categories-only` |
 | «Mening ishlarim» portfolio (8 ta) | `python manage.py import_works` |
 
-Ikkalasi ham rasmlarni loyihaning **`seed/`** papkasidan oladi — u git'ga
-kiritilgan, shuning uchun serverda hech narsa yuklash shart emas va Railway
-diski tozalansa ham kontent qaytadan tiklanadi.
+Rasm fayllarini keyingi ishga tushishda `restore_media` o'zi joyiga qo'yadi.
 
 > ⚠️ **`seed_demo` ni bayroqsiz ishlatmang.** To'liq variant o'ylab
 > topilgan nom va narxli 70 ta mahsulot yaratadi. Ular namoyish uchun; ishlab
