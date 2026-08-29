@@ -125,6 +125,42 @@ Mijozdan telefon raqami so‘ramaydi.
 > telefon raqamlari `[telefon]` bilan niqoblanadi — bazada esa to‘liq saqlanadi
 > va operator ko‘radi.
 
+## Panel yordamchisi (AI agent)
+
+Boshqaruv panelida **✦ Yordamchi** bo‘limi bor — menejer va administrator
+uchun. Uch ishni qiladi:
+
+1. **Savolga javob beradi.** «Bugun nechta buyurtma keldi?», «Qaysi
+   mahsulotning ombori tugayapti?» — raqamlar bazadan real vaqtda olinadi.
+2. **Qo‘shishda yordam beradi.** Mahsulot, kategoriya yoki portfolio ishi
+   uchun matn tuzib beradi va uni yozib qo‘yishni **taklif qiladi**.
+3. **Nazorat qilib turadi.** Sahifa tepasida kutayotgan suhbat, javobsiz
+   so‘rov, tugagan ombor ko‘rinadi va har daqiqada yangilanadi.
+
+Suhbat yordamchisi bilan bir xil Gemini kalitidan foydalanadi
+(`GEMINI_API_KEY`). Kalit bo‘lmasa bo‘lim ochiladi, faqat javob bermaydi.
+
+### Nega u o‘zi hech narsa yozmaydi
+
+Agent xodim nomidan bazaga yozadi, shuning uchun yozish yo‘li ataylab tor:
+
+| To‘siq | Qayerda |
+|---|---|
+| Rol tekshiruvi (faqat menejer va administrator) | `dashboard/views.py` |
+| Amallarning **oq ro‘yxati** | `dashboard/agent.py` → `ACTIONS` |
+| Ro‘yxatdan tashqari maydonlar tashlanadi | `parse_action` |
+| **Tasdiqlash** — tugma bosilmaguncha baza o‘zgarmaydi | `agent_run_pending` |
+| Yozuv panelning o‘z formasidan o‘tadi | `dashboard/agent_run.py` |
+| Har bir amal jurnalga tushadi (kim, qachon, nima) | `AgentAction` modeli |
+
+**O‘chirish amali umuman yo‘q** va qo‘shilmasligi kerak — buni test
+qo‘riqlaydi. Menejer administratorgina kiradigan bo‘limlarga (banner,
+sozlamalar) yozolmaydi.
+
+Yordamchini butunlay o‘chirish: `AI_AGENT=False`.
+
+Testlar: `dashboard/tests_agent.py` (48 ta, hech biri tarmoqqa chiqmaydi).
+
 ## Hudud — Surxondaryo viloyati
 
 Sayt faqat Surxondaryo bo‘ylab ishlaydi. Tumanlar ro‘yxati bitta joyda —

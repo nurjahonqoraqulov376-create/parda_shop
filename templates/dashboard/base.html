@@ -19,6 +19,7 @@
     {# Support xodimi faqat suhbatlarni ko'radi. #}
     <a href="{% url 'dashboard:chat_list' %}">💬 {% t "dash.chats" %}{% if waiting_chats %}<b class="dash-badge">{{ waiting_chats }}</b>{% endif %}</a>
     {% if not is_support %}
+    <a href="{% url 'dashboard:agent' %}">✦ {% t "dash.agent" %}</a>
     <a href="{% url 'dashboard:overview' %}">📊 {% t "dash.overview" %}</a>
     <a href="{% url 'dashboard:order_list' %}">🧾 {% t "dash.orders" %}</a>
     <a href="{% url 'dashboard:lead_list' %}">📞 {% t "dash.leads" %}</a>

@@ -1,0 +1,120 @@
+{% extends 'dashboard/base.html' %}
+{% load static site_extras %}
+
+{% block title %}{% t "dash.agent_title" %}{% endblock %}
+{% block heading %}✦ {% t "dash.agent_title" %}{% endblock %}
+
+{% block actions %}
+  <form method="post" action="{% url 'dashboard:agent_reset' %}">
+    {% csrf_token %}
+    <button type="submit" class="button ghost small">{% t "dash.agent_reset" %}</button>
+  </form>
+{% endblock %}
+
+{% block content %}
+
+{# ---------------- Nazorat qatori ---------------- #}
+<section class="ag-watch">
+  <h2 class="ag-h2">{% t "dash.agent_watch" %}</h2>
+  <ul class="ag-alerts" data-agent-alerts>
+    {% for alert in alerts %}
+      <li class="ag-alert ag-{{ alert.level }}">{{ alert.text }}</li>
+    {% endfor %}
+  </ul>
+  <div class="ag-nums">
+    <div><b>{{ snapshot.buyurtmalar.bugun }}</b><span>Bugungi buyurtma</span></div>
+    <div><b>{{ snapshot.sorovlar.yangi }}</b><span>Javobsiz so‘rov</span></div>
+    <div><b>{{ snapshot.suhbatlar.operator_kutayotgan }}</b><span>Kutayotgan suhbat</span></div>
+    <div><b>{{ snapshot.katalog.mahsulotlar }}</b><span>Aktiv mahsulot</span></div>
+    <div><b>{{ snapshot.katalog.ombori_tugagan }}</b><span>Ombori tugagan</span></div>
+    <div><b>{{ snapshot.portfolio.ishlar }}</b><span>Portfolio ishi</span></div>
+  </div>
+</section>
+
+{# ---------------- Suhbat ---------------- #}
+<section class="ag-chat" data-agent
+         data-url-send="{% url 'dashboard:agent_send' %}"
+         data-url-pulse="{% url 'dashboard:agent_pulse' %}"
+         data-text-error="{% t 'dash.agent_offline' %}">
+
+  {% if not agent_enabled %}
+    <p class="ag-off">{% t "dash.agent_disabled" %}</p>
+  {% endif %}
+
+  <p class="muted ag-lead">{% t "dash.agent_lead" %}</p>
+
+  <div class="ag-log" data-agent-log>
+    {% for role, text in history %}
+      <div class="ag-row ag-{{ role }}"><div class="ag-bubble">{{ text|linebreaksbr }}</div></div>
+    {% empty %}
+      <div class="ag-row ag-agent">
+        <div class="ag-bubble">
+          Assalomu alaykum! Saytdagi holatni so‘rashingiz yoki yangi mahsulot,
+          kategoriya, portfolio ishi qo‘shishda yordam so‘rashingiz mumkin.
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# Amal taklifi — faqat tasdiqlangandan keyin yoziladi #}
+  <div class="ag-proposal" data-agent-proposal {% if not pending %}hidden{% endif %}>
+    <p class="ag-proposal-title">{% t "dash.agent_proposal" %}</p>
+    <p class="ag-proposal-body" data-agent-proposal-text>{{ pending_summary|default:'' }}</p>
+    <div class="ag-proposal-actions">
+      <form method="post" action="{% url 'dashboard:agent_run' %}">
+        {% csrf_token %}
+        <button type="submit" class="button small">{% t "dash.agent_confirm" %}</button>
+      </form>
+      <form method="post" action="{% url 'dashboard:agent_cancel' %}">
+        {% csrf_token %}
+        <button type="submit" class="button ghost small">{% t "dash.agent_cancel" %}</button>
+      </form>
+    </div>
+  </div>
+
+  <form class="ag-form" data-agent-form>
+    {% csrf_token %}
+    <textarea class="field ag-input" name="text" rows="2" maxlength="2000" required
+              data-agent-input enterkeyhint="send"
+              placeholder="{% t 'dash.agent_placeholder' %}"></textarea>
+    <button class="button" type="submit">{% t "dash.agent_send" %}</button>
+  </form>
+
+  <p class="muted ag-note">{% t "dash.agent_note" %}</p>
+</section>
+
+{# ---------------- Bajarilgan amallar jurnali ---------------- #}
+<section class="ag-log-section">
+  <h2 class="ag-h2">{% t "dash.agent_log" %}</h2>
+  {% if recent_actions %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Sana</th><th>Xodim</th><th>Amal</th><th>Holat</th></tr>
+        </thead>
+        <tbody>
+          {% for record in recent_actions %}
+            <tr>
+              <td>{{ record.created_at|date:"d.m.Y H:i" }}</td>
+              <td>{{ record.user.username|default:"—" }}</td>
+              <td>
+                {% if record.object_url %}
+                  <a href="{{ record.object_url }}">{{ record.summary }}</a>
+                {% else %}{{ record.summary }}{% endif %}
+              </td>
+              <td>
+                {% if record.status == 'done' %}<span class="badge ok">Bajarildi</span>
+                {% else %}<span class="badge warn" title="{{ record.error }}">Xato</span>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">{% t "dash.agent_log_empty" %}</p>
+  {% endif %}
+</section>
+
+<script src="{% static 'js/agent.js' %}" defer></script>
+{% endblock %}

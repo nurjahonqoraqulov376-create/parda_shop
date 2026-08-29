@@ -27,6 +27,13 @@ urlpatterns = [
     # Suhbatlar pastdagi `<slug:key>` catch-all'dan OLDIN turishi shart —
     # aks holda `suhbatlar/` generic CRUD bo'limi deb qabul qilinadi.
     path('kirgandan-keyin/', views.after_login, name='after_login'),
+    # Yordamchi ham catch-all'dan oldin turishi shart.
+    path('yordamchi/', views.agent_page, name='agent'),
+    path('yordamchi/soragan/', views.agent_send, name='agent_send'),
+    path('yordamchi/bajar/', views.agent_run_pending, name='agent_run'),
+    path('yordamchi/bekor/', views.agent_cancel, name='agent_cancel'),
+    path('yordamchi/tozalash/', views.agent_reset, name='agent_reset'),
+    path('yordamchi/nazorat/', views.agent_pulse, name='agent_pulse'),
     path('suhbatlar/', views.chat_list, name='chat_list'),
     path('suhbatlar/<int:pk>/', views.chat_detail, name='chat_detail'),
     path('suhbatlar/<int:pk>/yopish/', views.chat_close, name='chat_close'),

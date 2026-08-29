@@ -211,6 +211,12 @@ GEMINI_MODEL = env('GEMINI_MODEL', default='gemini-3.5-flash-lite')
 AI_SUPPORT_TIMEOUT = env.float('AI_SUPPORT_TIMEOUT', default=12.0)
 AI_SUPPORT_MAX_TOKENS = env.int('AI_SUPPORT_MAX_TOKENS', default=400)
 
+# Boshqaruv panelidagi yordamchi — xuddi shu Gemini kalitidan foydalanadi.
+# Javobi uzunroq (matn tuzib beradi), shuning uchun chegara ham kattaroq.
+AI_AGENT = env.bool('AI_AGENT', default=True)
+AI_AGENT_TIMEOUT = env.float('AI_AGENT_TIMEOUT', default=20.0)
+AI_AGENT_MAX_TOKENS = env.int('AI_AGENT_MAX_TOKENS', default=900)
+
 # --------------------------------------------------------------------------
 # Loglar. Django'ning odatiy sozlamasi DEBUG=False bo'lganda xatolarni faqat
 # adminlarga EMAIL qiladi — SMTP sozlanmagan bo'lsa xato hech qayerga

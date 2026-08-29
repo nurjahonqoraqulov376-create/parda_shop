@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models.deletion import ProtectedError
 from django.core.paginator import Paginator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import get_language
@@ -17,7 +17,10 @@ from pages.models import SiteSettings
 from parda_shop.translations import translate
 from support.models import Conversation, Message
 
+from . import agent as agent_ai
+from . import agent_run
 from .forms import LeadStatusForm, OrderStatusForm, dashboard_form
+from .models import AgentAction
 from .registry import get_form_class, get_section
 
 User = get_user_model()
@@ -344,3 +347,108 @@ def site_settings(request):
     else:
         form = form_class(instance=instance)
     return render(request, 'dashboard/settings.html', {'form': form})
+
+
+# --------------------------------------------------------------------------
+# AI yordamchi (agent)
+# --------------------------------------------------------------------------
+# Agent xodim nomidan baza yozadi, shuning uchun uch qatlamli to'siq bor:
+#   1) rol tekshiruvi (bu yerda),
+#   2) amallarning oq ro'yxati (`agent.ACTIONS`),
+#   3) tasdiqlash — hech narsa avtomatik yozilmaydi.
+AGENT_HISTORY_KEY = 'agent_history'
+AGENT_PENDING_KEY = 'agent_pending'
+AGENT_HISTORY_LIMIT = 20
+
+
+@role_required(*MANAGER_ROLES)
+def agent_page(request):
+    pending = request.session.get(AGENT_PENDING_KEY)
+    return render(request, 'dashboard/agent.html', {
+        'alerts': agent_ai.alerts(),
+        'snapshot': agent_ai.site_snapshot(),
+        'agent_enabled': agent_ai.is_enabled(),
+        'history': request.session.get(AGENT_HISTORY_KEY, []),
+        'pending': pending,
+        'pending_summary': agent_run.describe(pending) if pending else '',
+        'recent_actions': AgentAction.objects.select_related('user')[:15],
+    })
+
+
+@role_required(*MANAGER_ROLES)
+def agent_send(request):
+    """Savol yuboriladi; javob va (bo'lsa) amal taklifi qaytadi."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'faqat POST'}, status=405)
+
+    question = (request.POST.get('text') or '').strip()
+    if not question:
+        return JsonResponse({'error': _t('dash.agent_empty')}, status=400)
+    if len(question) > 2000:
+        return JsonResponse({'error': _t('dash.agent_too_long')}, status=400)
+
+    history = request.session.get(AGENT_HISTORY_KEY, [])
+    answer, action = agent_ai.ask(question, request.user, history)
+
+    if answer is None:
+        return JsonResponse({'ok': False, 'answer': _t('dash.agent_offline')})
+
+    history = (history + [['user', question], ['agent', answer]])[-AGENT_HISTORY_LIMIT:]
+    request.session[AGENT_HISTORY_KEY] = history
+    request.session[AGENT_PENDING_KEY] = action
+    request.session.modified = True
+
+    return JsonResponse({
+        'ok': True,
+        'answer': answer,
+        'action': {'label': action['label'], 'summary': agent_run.describe(action)} if action else None,
+    })
+
+
+@role_required(*MANAGER_ROLES)
+def agent_run_pending(request):
+    """Taklif qilingan amalni TASDIQLANGANDAN keyin bajaradi."""
+    if request.method != 'POST':
+        return redirect('dashboard:agent')
+
+    action = request.session.get(AGENT_PENDING_KEY)
+    if not action:
+        messages.error(request, _t('dash.agent_no_action'))
+        return redirect('dashboard:agent')
+
+    record, obj = agent_run.run_and_log(action, request.user)
+    request.session[AGENT_PENDING_KEY] = None
+    request.session.modified = True
+
+    if obj is None:
+        messages.error(request, '%s: %s' % (_t('dash.agent_failed'), record.error))
+    else:
+        messages.success(request, '%s — %s' % (_t('dash.saved'), record.summary))
+        if record.object_url:
+            return redirect(record.object_url)
+    return redirect('dashboard:agent')
+
+
+@role_required(*MANAGER_ROLES)
+def agent_cancel(request):
+    """Taklifni bekor qiladi."""
+    if request.method == 'POST':
+        request.session[AGENT_PENDING_KEY] = None
+        request.session.modified = True
+    return redirect('dashboard:agent')
+
+
+@role_required(*MANAGER_ROLES)
+def agent_reset(request):
+    """Suhbatni tozalaydi."""
+    if request.method == 'POST':
+        request.session[AGENT_HISTORY_KEY] = []
+        request.session[AGENT_PENDING_KEY] = None
+        request.session.modified = True
+    return redirect('dashboard:agent')
+
+
+@role_required(*MANAGER_ROLES)
+def agent_pulse(request):
+    """Nazorat qatori — sahifa uni davriy yangilab turadi."""
+    return JsonResponse({'alerts': agent_ai.alerts(), 'snapshot': agent_ai.site_snapshot()})
