@@ -9,14 +9,23 @@
 </head>
 <body class="dash">
 
-<aside class="dash-side">
-  {# `after_login` rolga qarab yo'naltiradi — support «Umumiy» ga kira olmaydi. #}
-  <a class="dash-brand" href="{% url 'dashboard:after_login' %}">
-    <span class="brand-mark">S</span>
-    <span>{{ site.brand_name }}<small>{% t "dash.title" %}</small></span>
-  </a>
+<aside class="dash-side" data-dash-side>
+  <div class="dash-side-top">
+    {# `after_login` rolga qarab yo'naltiradi — support «Umumiy» ga kira olmaydi. #}
+    <a class="dash-brand" href="{% url 'dashboard:after_login' %}">
+      <span class="brand-mark">S</span>
+      <span>{{ site.brand_name }}<small>{% t "dash.title" %}</small></span>
+    </a>
+    {% comment %}
+      Telefonda menyu yig'ilib turadi, aks holda kontent ekrandan pastga
+      siljib ketadi. Kompyuterda bu tugma ko'rinmaydi.
+    {% endcomment %}
+    <button class="dash-burger" type="button" data-dash-menu-toggle
+            aria-expanded="false" aria-controls="dash-nav"
+            aria-label="{% t 'nav.menu' %}">☰</button>
+  </div>
 
-  <nav class="dash-nav">
+  <nav class="dash-nav" id="dash-nav">
     {# Support xodimi faqat suhbatlarni ko'radi. #}
     <a href="{% url 'dashboard:chat_list' %}">💬 {% t "dash.chats" %}{% if waiting_chats %}<b class="dash-badge">{{ waiting_chats }}</b>{% endif %}</a>
     {% if not is_support %}
@@ -70,6 +79,37 @@
       select.closest('form').submit();
     });
   });
+
+  // --- Telefondagi menyu ---
+  (function () {
+    var side = document.querySelector('[data-dash-side]');
+    var toggle = document.querySelector('[data-dash-menu-toggle]');
+    if (!side || !toggle) { return; }
+
+    toggle.addEventListener('click', function () {
+      var open = side.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    // Bo'limga o'tilganda menyu yopilsin — aks holda yangi sahifada
+    // yana o'sha menyu ochiq turardi.
+    side.addEventListener('click', function (event) {
+      if (event.target.closest('a')) {
+        side.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Joriy bo'limni belgilaymiz: menyu yig'iq turganda qayerda
+    // ekanini bilish qiyin bo'lmasin.
+    var here = window.location.pathname;
+    side.querySelectorAll('.dash-nav a').forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (href && href !== '/' && here.indexOf(href) === 0) {
+        link.classList.add('is-current');
+      }
+    });
+  })();
 </script>
 </body>
 </html>

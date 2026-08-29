@@ -266,6 +266,22 @@ slayder, galereya kabi UI mexanikasi bilan shug‘ullanadi).
 Yangi rasm qo‘shsangiz `width`/`height` atributlarini yozing (kontent sakramasligi uchun);
 `img { height: auto }` global qoidasi nisbatni saqlaydi.
 
+## Panel telefonda
+
+Yon menyu tor ekranda (≤820px) **yig'ilib** turadi: tepada faqat brend va
+☰ tugmasi qoladi, kontent esa darhol ekranning tepasida ko'rinadi.
+
+Ilgari menyu bir ustunga tushib, o'nlab havolasi bilan butun tepani
+egallardi — «Buyurtmalar» ga bosgan odam sahifa o'rniga yana o'sha
+menyuni ko'rar, kerakli jadval esa ancha pastda qolardi.
+
+- Bo'limga o'tilganda menyu o'zi yopiladi
+- Joriy bo'lim menyuda belgilanadi (`.is-current`)
+- Bosish maydonlari 44px — barmoq uchun qulay o'lcham
+- Yon panel tepada yopishib turadi, ya'ni menyu doim qo'l ostida
+
+Tekshiruv: `dashboard/tests_mobile.py` (15 ta test).
+
 ## Rollar va kirish
 
 Kirish huquqi **xodim profili** (`accounts.Profile`) orqali beriladi. Profil yaratilishi

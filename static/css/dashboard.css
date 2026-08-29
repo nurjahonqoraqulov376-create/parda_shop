@@ -60,6 +60,7 @@ body.dash-login {
 .dash-nav { display: grid; gap: 2px; }
 .dash-nav a { padding: 9px 11px; border-radius: var(--radius); font-size: 14px; }
 .dash-nav a:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.dash-nav a.is-current { background: rgba(255, 255, 255, .14); color: #fff; font-weight: 600; }
 .dash-nav-title { margin: 14px 0 4px; padding-left: 11px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #6f6a62; }
 .dash-side-foot { margin-top: auto; border-top: 1px solid rgba(255, 255, 255, .1); padding-top: 14px; font-size: 12px; }
 .dash-side-foot .link-more { display: block; color: var(--accent); }
@@ -156,8 +157,6 @@ input[type=checkbox] { width: auto; }
 
 @media (max-width: 820px) {
   body.dash { grid-template-columns: 1fr; }
-  .dash-side { position: static; height: auto; }
-  .dash-nav { grid-template-columns: repeat(2, 1fr); display: grid; }
   .dash-main { padding: 18px 16px 40px; }
   .stat.wide { grid-column: span 1; }
 }
@@ -182,15 +181,41 @@ a, button, label, summary { -webkit-tap-highlight-color: transparent; touch-acti
   .pagination a, .pagination span { min-width: 44px; height: 44px; }
 }
 
+/* Telefonda yon menyu YIG'ILIB turadi.
+ *
+ * Ilgari u bir ustunga tushib, o'nlab havolasi bilan ekranning butun
+ * tepasini egallardi — «Buyurtmalar» ga bosgan odam sahifa o'rniga
+ * yana menyuni ko'rar, kontent esa pastda qolib ketardi. */
+.dash-side-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dash-burger {
+  display: none; background: none; border: 0; color: #fff;
+  font-size: 22px; line-height: 1; padding: 8px 10px; border-radius: var(--radius);
+}
+.dash-burger:hover { background: rgba(255, 255, 255, .1); }
+
 @media (max-width: 820px) {
-  /* Yon menyu bir ustunga tushib, sahifaning yarmini egallardi. */
-  .dash-nav { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .dash-side {
+    position: sticky; top: 0; z-index: 30; height: auto;
+    padding: 10px 14px; gap: 10px;
+  }
+  .dash-burger { display: inline-flex; align-items: center; justify-content: center; }
+  .dash-brand small { display: none; }
+
+  /* Yopiq holat — kontent darhol ekranning tepasida. */
+  .dash-nav, .dash-side-foot { display: none; }
+  .dash-side.is-open .dash-nav {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+  }
+  .dash-side.is-open .dash-side-foot {
+    display: block; grid-column: 1 / -1; margin-top: 4px;
+  }
   .dash-nav-title { grid-column: 1 / -1; }
-  .dash-side-foot { grid-column: 1 / -1; }
+
+  /* Ochilgan menyu uzun bo'lsa o'z ichida surilsin. */
+  .dash-side.is-open { max-height: 100vh; overflow-y: auto; }
 }
 
 @media (max-width: 560px) {
-  .dash-nav { grid-template-columns: 1fr 1fr; }
   .dash-main { padding: 16px 12px 36px; }
   /* Keng jadvallar yon tomonga surilsin, sahifani cho'zib yubormasin. */
   .table-wrap, .dash-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
