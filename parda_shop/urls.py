@@ -2,11 +2,23 @@ from django.conf import settings
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
+from django.shortcuts import redirect
 from django.urls import include, path, re_path
+from django.templatetags.static import static as static_url
 from django.views.generic import TemplateView
 from django.views.static import serve
 
 from pages.sitemaps import SITEMAPS
+
+
+def favicon(request):
+    """`/favicon.ico` ni statik fayl manziliga yo'naltiradi.
+
+    Manzil har chaqiruvda hisoblanadi: `ManifestStaticFilesStorage` fayl
+    nomiga hash qo'shadi va u har joylashtirishda o'zgarishi mumkin.
+    """
+    return redirect(static_url('img/favicon.ico'), permanent=True)
+
 
 def robots_txt(request):
     """`robots.txt` — sitemap manzili joriy domendan olinadi.
@@ -27,6 +39,9 @@ urlpatterns = [
     path('robots.txt', robots_txt, name='robots'),
     path('sitemap.xml', sitemap, {'sitemaps': SITEMAPS},
          name='django.contrib.sitemaps.views.sitemap'),
+    # Brauzer faviconni AYNAN ildizdan so'raydi, sahifadagi <link> ga
+    # qaramasdan. Jurnalda shu manzilga o'nlab 404 tushayotgan edi.
+    path('favicon.ico', favicon, name='favicon'),
 ]
 
 urlpatterns += i18n_patterns(

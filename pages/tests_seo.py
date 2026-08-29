@@ -107,6 +107,17 @@ class SitemapTests(TestCase):
 class FaviconTests(TestCase):
     """Brauzer har sahifada `/favicon.ico` so‘raydi — jurnal 404 ga to‘lardi."""
 
+    def test_ildizdan_ochiladi(self):
+        """Brauzer AYNAN `/favicon.ico` ni so‘raydi — sahifadagi <link> ga
+        qaramaydi. Ilgari bu manzil 404 qaytarardi."""
+        response = self.client.get('/favicon.ico')
+        self.assertIn(response.status_code, (301, 302))
+        self.assertIn('favicon', response['Location'])
+
+    def test_ildizdagi_manzil_haqiqiy_faylga_olib_boradi(self):
+        response = self.client.get('/favicon.ico')
+        self.assertTrue(response['Location'].startswith('/static/'))
+
     def test_fayl_repoda_bor(self):
         from django.conf import settings
         from pathlib import Path
@@ -127,3 +138,64 @@ class FaviconTests(TestCase):
         self.client.force_login(user)
         html = self.client.get('/uz/boshqaruv/').content.decode()
         self.assertIn('rel="icon"', html)
+
+
+@NO_NETWORK
+class SiteDomainTests(TestCase):
+    """`sitemap.xml` manzillarni Site jadvalidan quradi.
+
+    Django o‘rnatilganda u yerga `example.com` yoziladi. Hech kim
+    tegmasa sayt xaritasi butunlay yaroqsiz bo‘ladi:
+    `<loc>https://example.com/uz/</loc>` — aynan shunday bo‘lgandi.
+    """
+
+    def run_cmd(self, **env):
+        import os
+        from io import StringIO
+        from unittest.mock import patch
+        from django.core.management import call_command
+        with patch.dict(os.environ, env, clear=False):
+            out = StringIO()
+            call_command('ensure_site', stdout=out)
+            return out.getvalue()
+
+    def test_domen_yangilanadi(self):
+        from django.contrib.sites.models import Site
+        self.run_cmd(SITE_DOMAIN='sevara-design.up.railway.app')
+        self.assertEqual(Site.objects.get(pk=1).domain, 'sevara-design.up.railway.app')
+
+    def test_example_com_qolmaydi(self):
+        from django.contrib.sites.models import Site
+        Site.objects.update_or_create(pk=1, defaults={'domain': 'example.com', 'name': 'x'})
+        self.run_cmd(SITE_DOMAIN='sevaradesign.uz')
+        self.assertNotEqual(Site.objects.get(pk=1).domain, 'example.com')
+
+    def test_https_prefiksi_olib_tashlanadi(self):
+        from django.contrib.sites.models import Site
+        self.run_cmd(SITE_DOMAIN='https://sevaradesign.uz/')
+        self.assertEqual(Site.objects.get(pk=1).domain, 'sevaradesign.uz')
+
+    def test_railway_ozgaruvchisi_ham_ishlaydi(self):
+        from django.contrib.sites.models import Site
+        import os
+        from unittest.mock import patch
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop('SITE_DOMAIN', None)
+            self.run_cmd(RAILWAY_PUBLIC_DOMAIN='test.up.railway.app')
+        self.assertEqual(Site.objects.get(pk=1).domain, 'test.up.railway.app')
+
+    def test_domensiz_xato_bermaydi(self):
+        """Pre-deploy'da doim qolgani uchun bo‘sh holatda ham o‘tishi shart."""
+        import os
+        from unittest.mock import patch
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop('SITE_DOMAIN', None)
+            os.environ.pop('RAILWAY_PUBLIC_DOMAIN', None)
+            out = self.run_cmd()
+        self.assertIn('o‘tkazib yuborildi', out)
+
+    def test_sitemapda_haqiqiy_domen_chiqadi(self):
+        self.run_cmd(SITE_DOMAIN='sevaradesign.uz')
+        body = self.client.get('/sitemap.xml').content.decode()
+        self.assertIn('sevaradesign.uz', body)
+        self.assertNotIn('example.com', body)

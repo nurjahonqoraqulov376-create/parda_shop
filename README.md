@@ -181,10 +181,16 @@ Testlar: `dashboard/tests_agent.py` (61 ta, hech biri tarmoqqa chiqmaydi).
 |---|---|
 | `/robots.txt` | Robotlarga yo'l ko'rsatadi; panel va savat indeksga tushmaydi. Sitemap manzili **joriy domendan** olinadi — domen almashsa qo'lda tahrirlash kerak emas. |
 | `/sitemap.xml` | Bosh sahifa, katalog, kategoriyalar, mahsulotlar, portfolio — ikkala tilda (`pages/sitemaps.py`). Nofaol yozuvlar chiqmaydi. |
-| `/favicon.ico` | Brend belgisi. Ilgari yo'q edi va jurnalga sahifa ochilgani sayin 404 tushardi. |
+| `/favicon.ico` | Brend belgisi. Ilgari yo'q edi va jurnalga sahifa ochilgani sayin 404 tushardi. Ildizdagi manzil statik faylga yo'naltiradi — brauzer uni aynan shu yerdan so'raydi. |
 
 Ikkala manzil ham **til prefiksisiz** (`i18n_patterns` dan tashqarida):
 robotlar ularni aynan saytning ildizidan qidiradi.
+
+> ⚠️ **`ensure_site` buyrug'i Pre-deploy Command da turishi shart.**
+> `sitemap.xml` manzillarni `django.contrib.sites` jadvalidan quradi va
+> u yerda o'rnatilganda `example.com` yozilgan bo'ladi — tegilmasa butun
+> xarita yaroqsiz chiqadi. Buyruq domenni `SITE_DOMAIN` yoki
+> `RAILWAY_PUBLIC_DOMAIN` dan olib yangilaydi.
 
 Google'ga qo'shish: [Search Console](https://search.google.com/search-console)
 → saytni qo'shing → **Sitemaps** → `sitemap.xml` ni yuboring.
@@ -538,7 +544,7 @@ Buyruqlar Railway'ning **Settings** bo'limida qo'lda yoziladi
 |---|---|
 | Settings → Build → **Custom Build Command** | `python manage.py collectstatic --noinput` |
 | Settings → Deploy → **Custom Start Command** | `python manage.py restore_media; gunicorn parda_shop.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -` |
-| Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles && python manage.py ensure_admin` |
+| Settings → Deploy → **Pre-deploy Command** | `python manage.py migrate --noinput && python manage.py setup_roles && python manage.py ensure_admin && python manage.py ensure_site` |
 
 > ⚠️ **Migratsiyani `Procfile` ning `release:` qatoriga YOZMANG.** Nixpacks
 > uni QURISH bosqichiga qo'shadi, u yerda esa Railway'ning ichki tarmog'i hali
