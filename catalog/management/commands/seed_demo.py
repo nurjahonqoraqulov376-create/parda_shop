@@ -22,8 +22,10 @@ CONTACT_PHONE = '+998 99 986 71 99'
 SEED_CATEGORY_DIR = Path(settings.BASE_DIR) / 'seed' / 'categories'
 
 # `add_arguments` ichida sinf maydoniga murojaat qilib bo'lmaydi.
-SAFE_PARTS_KEYS = ('advantages', 'banners', 'categories', 'content',
-                   'services', 'settings')
+# DIQQAT: `banners` bu yerda YO'Q. `_banners()` ro'yxatda bo'lmagan
+# bannerlarni O'CHIRIB YUBORADI — paneldan qo'shilgani yo'qoladi.
+# Ishlab turgan saytda ishlatiladigan buyruq ma'lumot o'chirmasligi kerak.
+SAFE_PARTS_KEYS = ('advantages', 'categories', 'content', 'services', 'settings')
 
 # `--only settings` da to'ldiriladigan maydonlar. Bu yerda EMAIL va ijtimoiy
 # tarmoq havolalari ataylab yo'q: demo qiymatlari (`info@sevaradesign.uz`,
@@ -848,9 +850,8 @@ class Command(BaseCommand):
         'settings': '_settings_fill_empty',
         'categories': '_categories_with_images',
         'advantages': '_advantages',
-        'services': '_services',
-        'content': '_content_blocks',
-        'banners': '_banners',
+        'services': '_services_keep',
+        'content': '_content_blocks_keep',
     }
 
     def add_arguments(self, parser):
@@ -1129,7 +1130,15 @@ class Command(BaseCommand):
             )
         FaqItem.objects.exclude(question__in=questions).delete()
 
-    def _services(self):
+    def _services_keep(self):
+        """`--only services` uchun: hech narsa o'chirmaydi."""
+        self._services(prune=False)
+
+    def _content_blocks_keep(self):
+        """`--only content` uchun: hech narsa o'chirmaydi."""
+        self._content_blocks(prune=False)
+
+    def _services(self, prune=True):
         slugs = set()
         for order, (slug, icon, name, name_ru, short, short_ru, body, body_ru) in enumerate(SERVICES, start=1):
             slugs.add(slug)
@@ -1140,7 +1149,8 @@ class Command(BaseCommand):
                           'description': body, 'description_ru': body_ru,
                           'sort_order': order, 'is_active': True},
             )
-        Service.objects.exclude(slug__in=slugs).delete()
+        if prune:
+            Service.objects.exclude(slug__in=slugs).delete()
 
     def _articles(self):
         slugs = set()
@@ -1153,7 +1163,7 @@ class Command(BaseCommand):
             )
         Article.objects.exclude(slug__in=slugs).delete()
 
-    def _content_blocks(self):
+    def _content_blocks(self, prune=True):
         keys = set()
         for order, (key, title, title_ru, body, body_ru) in enumerate(CONTENT_BLOCKS, start=1):
             keys.add(key)
@@ -1162,4 +1172,5 @@ class Command(BaseCommand):
                 defaults={'title': title, 'title_ru': title_ru, 'body': body, 'body_ru': body_ru,
                           'show_on_home': True, 'sort_order': order, 'is_active': True},
             )
-        ContentBlock.objects.exclude(key__in=keys).delete()
+        if prune:
+            ContentBlock.objects.exclude(key__in=keys).delete()

@@ -254,3 +254,59 @@ class SeedSettingsFillTests(TestCase):
         obj = SiteSettings.load()
         self.assertTrue(obj.about_short_ru.strip())
         self.assertTrue(obj.working_hours_ru.strip())
+
+
+@override_settings(AUTO_TRANSLATE=False)
+class SeedOnlyIsNonDestructiveTests(TestCase):
+    """`--only` hech qachon ma‘lumot o‘chirmasligi kerak.
+
+    `seed_demo` ichida ro‘yxatda bo‘lmagan yozuvlarni tozalaydigan
+    qismlar bor (masalan `_banners()` va `_cleanup_old_products()`).
+    Ular ishlab turgan saytda ishlatiladigan `--only` ga tushib qolsa,
+    egasi paneldan qo‘shgan banner yoki mahsulot jimgina yo‘qoladi.
+    """
+
+    def test_banners_ruxsat_etilmagan(self):
+        self.assertNotIn('banners', SAFE_PARTS_KEYS)
+
+    def test_ochiradigan_qismlar_royxatda_yoq(self):
+        from catalog.management.commands.seed_demo import Command
+        import inspect
+        for part in SAFE_PARTS_KEYS:
+            method = getattr(Command, Command.SAFE_PARTS[part])
+            source = inspect.getsource(method)
+            with self.subTest(part=part):
+                self.assertNotIn('.delete()', source, '%s ma‘lumot o‘chiradi' % part)
+
+    def test_mavjud_banner_saqlanib_qoladi(self):
+        from io import StringIO
+        from pages.models import Banner
+        Banner.objects.create(title='Egasining banneri', is_active=True)
+        call_command('seed_demo', '--only', *SAFE_PARTS_KEYS, stdout=StringIO())
+        self.assertTrue(Banner.objects.filter(title='Egasining banneri').exists())
+
+    def test_mavjud_xizmat_saqlanib_qoladi(self):
+        from io import StringIO
+        from pages.models import Service
+        Service.objects.create(name='Pardani tozalash', slug='tozalash',
+                               short_description='q', description='t')
+        call_command('seed_demo', '--only', *SAFE_PARTS_KEYS, stdout=StringIO())
+        self.assertTrue(Service.objects.filter(slug='tozalash').exists())
+
+    def test_mavjud_kontent_bloki_saqlanib_qoladi(self):
+        from io import StringIO
+        from pages.models import ContentBlock
+        ContentBlock.objects.create(key='egasi-yozgan', title='Kafolat', body='12 oy')
+        call_command('seed_demo', '--only', *SAFE_PARTS_KEYS, stdout=StringIO())
+        self.assertTrue(ContentBlock.objects.filter(key='egasi-yozgan').exists())
+
+    def test_mavjud_mahsulot_saqlanib_qoladi(self):
+        from io import StringIO
+        from decimal import Decimal
+        category = Category.objects.create(name='Qo‘lda', slug='qolda')
+        Product.objects.create(category=category, name='Haqiqiy parda', slug='haqiqiy',
+                               short_description='q', description='t',
+                               price=Decimal('100000'), stock=1)
+        call_command('seed_demo', '--only', *SAFE_PARTS_KEYS, stdout=StringIO())
+        product = Product.objects.get(slug='haqiqiy')
+        self.assertTrue(product.is_active)
