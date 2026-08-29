@@ -543,7 +543,11 @@ Rasm fayllarini keyingi ishga tushishda `restore_media` o'zi joyiga qo'yadi.
 > topilgan nom va narxli 70 ta mahsulot, soxta mijoz sharhlari va soxta
 > hamkorlar ro'yxati. `--only` bularga yo'l bermaydi — unga faqat
 > do'konning o'zi haqidagi ma'lumot va tuzilma kiradi:
-> `advantages`, `banners`, `categories`, `content`, `services`.
+> `advantages`, `banners`, `categories`, `content`, `services`, `settings`.
+>
+> `settings` faqat **bo'sh** maydonlarni to'ldiradi — paneldan kiritgan
+> matningizni qayta yozmaydi. Email va ijtimoiy tarmoq havolalariga umuman
+> tegmaydi: demo qiymatlari haqiqiy emas, ularni o'zingiz kiritasiz.
 
 Mahsulotlarni panelga kirib qo'lda qo'shasiz:
 `/uz/boshqaruv/mahsulotlar/` → **Qo'shish**.

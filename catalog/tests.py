@@ -190,3 +190,67 @@ class SeedOnlyPartsTests(TestCase):
         count = Advantage.objects.count()
         self.run_only('advantages')
         self.assertEqual(Advantage.objects.count(), count)
+
+
+@override_settings(AUTO_TRANSLATE=False)
+class SeedSettingsFillTests(TestCase):
+    """`--only settings` — faqat BO‘SH maydonlarni to‘ldiradi.
+
+    Jonli saytda «Biz haqimizda» sahifasi bo‘m-bo‘sh, «Aloqa» sahifasida
+    esa «Ish vaqti:» yozuvining ostida hech narsa yo‘q edi. To‘liq
+    `_settings()` bularni to‘ldiradi, lekin hamma narsani QAYTA YOZADI —
+    egasi paneldan kiritgan matn yo‘qolardi.
+    """
+
+    def run_cmd(self):
+        from io import StringIO
+        out = StringIO()
+        call_command('seed_demo', '--only', 'settings', stdout=out)
+        return out.getvalue()
+
+    def test_bosh_maydonlar_toldiriladi(self):
+        from pages.models import SiteSettings
+        self.run_cmd()
+        obj = SiteSettings.load()
+        for field in ('about_short', 'about_full', 'working_hours', 'address', 'phone_primary'):
+            with self.subTest(field=field):
+                self.assertTrue((getattr(obj, field) or '').strip(), '%s bo‘sh qoldi' % field)
+
+    def test_mavjud_qiymat_ustidan_yozilmaydi(self):
+        from pages.models import SiteSettings
+        obj = SiteSettings.load()
+        obj.about_short = 'Egasi o‘zi yozgan matn'
+        obj.working_hours = 'Dushanba–Shanba 10:00–18:00'
+        obj.save()
+        self.run_cmd()
+        obj = SiteSettings.load()
+        self.assertEqual(obj.about_short, 'Egasi o‘zi yozgan matn')
+        self.assertEqual(obj.working_hours, 'Dushanba–Shanba 10:00–18:00')
+
+    def test_soxta_aloqa_malumotlari_yozilmaydi(self):
+        """Demo email va ijtimoiy tarmoq havolalari haqiqiy emas.
+
+        `info@sevaradesign.uz` mavjud bo‘lmasligi mumkin, `https://t.me/`
+        esa hech qayerga olib bormaydi. Mijoz ularga urinib ovora bo‘lmasin.
+        """
+        from pages.models import SiteSettings
+        self.run_cmd()
+        obj = SiteSettings.load()
+        for field in ('email', 'telegram_url', 'instagram_url'):
+            with self.subTest(field=field):
+                self.assertEqual((getattr(obj, field) or '').strip(), '')
+
+    def test_qayta_ishga_tushirsa_ozgarmaydi(self):
+        from pages.models import SiteSettings
+        self.run_cmd()
+        before = SiteSettings.load().about_full
+        out = self.run_cmd()
+        self.assertEqual(SiteSettings.load().about_full, before)
+        self.assertIn('0 ta', out)
+
+    def test_ruscha_variantlar_ham_toldiriladi(self):
+        from pages.models import SiteSettings
+        self.run_cmd()
+        obj = SiteSettings.load()
+        self.assertTrue(obj.about_short_ru.strip())
+        self.assertTrue(obj.working_hours_ru.strip())

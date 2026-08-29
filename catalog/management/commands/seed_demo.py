@@ -22,7 +22,18 @@ CONTACT_PHONE = '+998 99 986 71 99'
 SEED_CATEGORY_DIR = Path(settings.BASE_DIR) / 'seed' / 'categories'
 
 # `add_arguments` ichida sinf maydoniga murojaat qilib bo'lmaydi.
-SAFE_PARTS_KEYS = ('advantages', 'banners', 'categories', 'content', 'services')
+SAFE_PARTS_KEYS = ('advantages', 'banners', 'categories', 'content',
+                   'services', 'settings')
+
+# `--only settings` da to'ldiriladigan maydonlar. Bu yerda EMAIL va ijtimoiy
+# tarmoq havolalari ataylab yo'q: demo qiymatlari (`info@sevaradesign.uz`,
+# bo'sh `t.me/`) haqiqiy emas va saytda turgani mijozni chalg'itadi.
+# Ularni egasi boshqaruv panelidan o'zi kiritadi.
+SETTINGS_FIELDS = (
+    'brand_name', 'tagline', 'tagline_ru',
+    'about_short', 'about_short_ru', 'about_full', 'about_full_ru',
+    'phone_primary', 'address', 'working_hours', 'working_hours_ru',
+)
 
 # (slug, nomi, nomi_ru, ikon, bosh sahifada, tavsif, tavsif_ru)
 CATEGORIES = [
@@ -834,6 +845,7 @@ class Command(BaseCommand):
     # o'ylab topilgan narx, soxta mijoz sharhi va soxta hamkor yo'q —
     # faqat do'konning o'zi haqidagi ma'lumot va tuzilma.
     SAFE_PARTS = {
+        'settings': '_settings_fill_empty',
         'categories': '_categories_with_images',
         'advantages': '_advantages',
         'services': '_services',
@@ -927,6 +939,36 @@ class Command(BaseCommand):
         settings_obj.telegram_url = 'https://t.me/'
         settings_obj.instagram_url = 'https://instagram.com/'
         settings_obj.save()
+
+    def _settings_fill_empty(self):
+        """Sayt sozlamalarining faqat BO'SH maydonlarini to'ldiradi.
+
+        `_settings()` dan farqi: u hamma narsani qayta yozadi va shu sababli
+        ishlab turgan saytda ishlatib bo'lmaydi — egasi paneldan kiritgan
+        matn yo'qoladi. Bu variant esa faqat hali hech narsa yozilmagan
+        joyni to'ldiradi.
+        """
+        current = SiteSettings.load()
+        # Namuna qiymatlarni alohida nusxada hosil qilamiz.
+        sample = SiteSettings(pk=current.pk)
+        original, SiteSettings.load = SiteSettings.load, staticmethod(lambda: sample)
+        try:
+            sample_save, sample.save = sample.save, lambda *a, **k: None
+            self._settings()
+            sample.save = sample_save
+        finally:
+            SiteSettings.load = original
+
+        filled = []
+        for field in SETTINGS_FIELDS:
+            if not (getattr(current, field, '') or '').strip():
+                value = getattr(sample, field, '')
+                if value:
+                    setattr(current, field, value)
+                    filled.append(field)
+        if filled:
+            current.save()
+        self.stdout.write('  sozlamalar: %d ta bo‘sh maydon to‘ldirildi.' % len(filled))
 
     def _banners(self):
         data = [
