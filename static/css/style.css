@@ -1323,3 +1323,91 @@ a, button, summary, label, [role="button"], .dot, .thumb {
   .error-actions .button { justify-content: center; }
   .error-search { flex-direction: column; }
 }
+
+/* ==========================================================================
+   VIZUAL SAYQAL
+   ==========================================================================
+   Yuqoridagi qoidalar ustidan yozadi. Maqsad — mavjud uslubni buzmasdan
+   nafisroq qilish: yumshoqroq ko'tarilishlar, aniqroq fokus, bo'sh
+   sahifalarning odamiyroq ko'rinishi. */
+
+/* --------------------------------------------------------- bo'sh holat */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; padding: 54px 28px;
+}
+.empty-icon {
+  display: grid; place-items: center;
+  width: 68px; height: 68px; margin-bottom: 6px;
+  border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-strong);
+  font-size: 28px;
+}
+.empty-title { margin: 0; font-size: 20px; }
+.empty-text { max-width: 46ch; margin: 0; line-height: 1.65; }
+.empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
+
+@media (max-width: 560px) {
+  .empty-state { padding: 38px 18px; }
+  .empty-icon { width: 56px; height: 56px; font-size: 24px; }
+  .empty-actions { width: 100%; flex-direction: column; }
+  .empty-actions .button { width: 100%; justify-content: center; }
+}
+
+/* --------------------------------------------------------- fokus halqasi */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+/* --------------------------------------------------------- kartochkalar */
+.product-card, .cat-tile, .work-card, .adv-item, .service-card {
+  transition: transform var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out);
+}
+.product-card:hover, .work-card:hover, .service-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-2);
+}
+.cat-tile:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+/* Rasm yuklanguncha joy band tursin — sahifa sakramaydi. */
+.product-card img, .work-card img, .cat-tile img {
+  background: var(--surface-2);
+}
+
+/* --------------------------------------------------------- tugmalar */
+.button {
+  transition: transform var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease),
+              background var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
+}
+.button:hover { transform: translateY(-1px); }
+.button:active { transform: translateY(0); }
+
+/* --------------------------------------------------------- maydonlar */
+input:focus, textarea:focus, select:focus, .field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+
+/* --------------------------------------------------------- sarlavhalar */
+.section-head h2 { letter-spacing: -.02em; }
+.stat-num { font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+
+/* --------------------------------------------------------- harakat */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -245,6 +245,19 @@ qayta chiqardi, bu telefonda o‘qishga imkon bermasdi.
 - Arizalar panelda **«Bildirishnoma»** turi bilan tushadi (`Lead.TYPES` → `popup`),
   `/uz/boshqaruv/sorovlar/?type=popup` orqali filtrlanadi.
 
+## Bo'sh sahifalar
+
+Katalog yoki portfolio bo'sh bo'lganda `includes/empty_state.html` bloki
+chiqadi: belgi, sarlavha, tushuntirish va **qo'ng'iroq tugmasi**.
+
+Ilgari bu joyda yolg'iz kulrang qator turardi («Mahsulot topilmadi») —
+katalog to'ldirilmagan paytda sayt buzilgandek ko'rinar va mijozga nima
+qilishni aytmasdi.
+
+Matn tarjima kaliti orqali beriladi, ya'ni har bir joyda mos gap
+yoziladi: katalogda «Katalog to'ldirilmoqda», qidiruvda «Boshqa so'z
+bilan qidirib ko'ring».
+
 ## Dizayn tizimi
 
 Butun ommaviy sayt bitta faylga tayanadi — `static/css/style.css`. Uning boshidagi

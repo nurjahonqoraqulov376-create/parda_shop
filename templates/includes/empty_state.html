@@ -1,0 +1,35 @@
+{% load site_extras %}
+{% comment %}
+  Bo'sh ro'yxat uchun umumiy blok.
+
+  Ilgari bu joyda yolg'iz kulrang qator turardi («Mahsulot topilmadi»).
+  Katalog hali to'ldirilmagan paytda sayt buzilgandek ko'rinardi va
+  mijozga nima qilishni aytmasdi. Endi qo'ng'iroq qilish taklif qilinadi.
+
+  Parametrlar (barchasi ixtiyoriy):
+    empty_icon      — belgi (sukut bo'yicha ▦)
+    empty_title_key — sarlavha uchun tarjima kaliti
+    empty_text_key  — tushuntirish uchun tarjima kaliti
+    hide_cta        — tugma kerak bo'lmasa
+{% endcomment %}
+<div class="empty-box empty-state">
+  <span class="empty-icon" aria-hidden="true">{% if empty_icon %}{{ empty_icon }}{% else %}▦{% endif %}</span>
+
+  <h3 class="empty-title">
+    {% if empty_title_key %}{% t empty_title_key %}{% else %}{% t "empty.title" %}{% endif %}
+  </h3>
+  <p class="muted empty-text">
+    {% if empty_text_key %}{% t empty_text_key %}{% else %}{% t "empty.text" %}{% endif %}
+  </p>
+
+  {% if not hide_cta %}
+    <div class="empty-actions">
+      <button type="button" class="button" data-modal-open="callback">
+        {% t "topbar.callback" %}
+      </button>
+      {% if site.phone_primary %}
+        <a class="button ghost" href="tel:{{ site.phone_primary }}">{{ site.phone_primary }}</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

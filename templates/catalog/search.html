@@ -18,7 +18,7 @@
       {% for product in page_obj %}
         {% include 'includes/product_card.html' with product=product %}
       {% empty %}
-        <p class="muted">{% t "catalog.empty" %}</p>
+        {% include 'includes/empty_state.html' with empty_icon="⌕" empty_title_key="empty.search_title" empty_text_key="empty.search_text" %}
       {% endfor %}
     </div>
     {% include 'includes/pagination.html' %}

@@ -37,6 +37,15 @@ UI = {
         'common.date': 'Sana',
         'common.total': 'Jami',
         'common.empty': 'Ma’lumot topilmadi',
+        'empty.title': 'Bu yerda hozircha bo‘sh',
+        'empty.text': 'Kerakli pardani topolmadingizmi? Qo‘ng‘iroq qiling — '
+                      'o‘lchovga chiqamiz va sizga mos variantni tanlab beramiz.',
+        'empty.catalog_title': 'Katalog to‘ldirilmoqda',
+        'empty.catalog_text': 'Mahsulotlar tez orada joylanadi. Hozircha kerakli '
+                              'pardani telefon orqali tanlab beramiz — o‘lchov bepul.',
+        'empty.search_title': 'Hech narsa topilmadi',
+        'empty.search_text': 'Boshqa so‘z bilan qidirib ko‘ring yoki bizga '
+                             'qo‘ng‘iroq qiling — kerakligini birga topamiz.',
         'common.required_note': 'Yulduzchali maydonlar to‘ldirilishi shart',
         'common.home': 'Bosh sahifa',
 
@@ -308,6 +317,15 @@ UI = {
         'common.date': 'Дата',
         'common.total': 'Итого',
         'common.empty': 'Ничего не найдено',
+        'empty.title': 'Здесь пока пусто',
+        'empty.text': 'Не нашли нужные шторы? Позвоните — приедем '
+                      'на замер и подберём подходящий вариант.',
+        'empty.catalog_title': 'Каталог наполняется',
+        'empty.catalog_text': 'Товары появятся совсем скоро. А пока подберём '
+                              'шторы по телефону — замер бесплатный.',
+        'empty.search_title': 'Ничего не нашлось',
+        'empty.search_text': 'Попробуйте другое слово или позвоните — '
+                             'найдём вместе.',
         'common.required_note': 'Поля со звёздочкой обязательны',
         'common.home': 'Главная',
 
